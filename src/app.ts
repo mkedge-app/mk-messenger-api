@@ -3,6 +3,8 @@ import cors from 'cors';
 import http, { Server } from 'http';
 import routes from './routes';
 
+import './database';
+
 class App {
   public app: Express;
   public server: Server;
