@@ -34,6 +34,7 @@ MONGODB_PORT=sua_porta
 
 3. Execute o seguinte comando para iniciar o banco de dados MongoDB:
 
+docker-compose up -d
 
 Isso iniciará um contêiner Docker com o MongoDB configurado usando as informações fornecidas no arquivo `.env`.
 
