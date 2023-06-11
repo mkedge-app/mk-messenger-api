@@ -21,26 +21,29 @@ Certifique-se de reiniciar o seu editor de código após a instalação da exten
 ## Configuração do MongoDB
 
 ### Requisitos
+
 - Docker instalado em sua máquina
 
 ### Instruções de Uso
 
 1. Clone o repositório para o seu ambiente local.
+
 2. No diretório raiz do projeto, crie um arquivo chamado `.env` e preencha com as seguintes informações:
 
-MONGODB_USERNAME=seu_usuario
-MONGODB_PASSWORD=sua_senha
-MONGODB_PORT=sua_porta
+>     MONGODB_USERNAME=seu_usuario
+>     MONGODB_PASSWORD=sua_senha
+>     MONGODB_PORT=sua_porta
 
 3. Execute o seguinte comando para iniciar o banco de dados MongoDB:
 
-docker-compose up -d
+> docker-compose up -d
 
 Isso iniciará um contêiner Docker com o MongoDB configurado usando as informações fornecidas no arquivo `.env`.
 
-### Observações
+  ### Observações
 
 - Certifique-se de fornecer valores válidos para `MONGODB_USERNAME` e `MONGODB_PASSWORD` no arquivo `.env`.
-- O banco de dados estará acessível na porta especificada em `MONGODB_PORT`
-- O contêiner do MongoDB será nomeado como `mongodb-mk-messenger`.
 
+- O banco de dados estará acessível na porta especificada em `MONGODB_PORT`
+
+- O contêiner do MongoDB será nomeado como `mongodb-mk-messenger`.
