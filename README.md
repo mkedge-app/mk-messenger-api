@@ -30,13 +30,13 @@ Certifique-se de reiniciar o seu editor de código após a instalação da exten
 
 2. No diretório raiz do projeto, crie um arquivo chamado `.env` e preencha com as seguintes informações:
 
-    MONGODB_USERNAME=seu_usuario
-    MONGODB_PASSWORD=sua_senha
-    MONGODB_PORT=sua_porta
+>     MONGODB_USERNAME=seu_usuario
+>     MONGODB_PASSWORD=sua_senha
+>     MONGODB_PORT=sua_porta
 
 3. Execute o seguinte comando para iniciar o banco de dados MongoDB:
 
-    docker-compose up -d
+>     docker-compose up -d
 
 Isso iniciará um contêiner Docker com o MongoDB configurado usando as informações fornecidas no arquivo `.env`.
 
