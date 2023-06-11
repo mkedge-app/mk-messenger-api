@@ -1,0 +1,18 @@
+# Arquivo .editorconfig
+
+# Define o estilo de identação como espaços
+[*]
+indent_style = space
+indent_size = 2
+
+# Define a quebra de linha como LF (Unix-style)
+[*]
+end_of_line = lf
+
+# Remove espaços em branco desnecessários no final das linhas
+[*]
+trim_trailing_whitespace = true
+
+# Adiciona uma linha em branco no final do arquivo
+[*]
+insert_final_newline = true
