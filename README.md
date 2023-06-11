@@ -16,3 +16,32 @@ Para baixar e instalar a extensão do EditorConfig em seu editor de código, sig
 
 Certifique-se de reiniciar o seu editor de código após a instalação da extensão do EditorConfig. Isso garantirá que as configurações de formatação do projeto sejam aplicadas automaticamente.
 
+# Configuração do MongoDB
+
+## Requisitos
+- Docker instalado na máquina
+
+## Instruções de Uso
+
+1. Clone o repositório para o seu ambiente local.
+2. No diretório raiz do projeto, crie um arquivo chamado `.env` e preencha com as seguintes informações:
+
+MONGODB_USERNAME=your_username
+MONGODB_PASSWORD=your_password
+MONGODB_PORT=your_port
+
+3. Execute o seguinte comando para iniciar o banco de dados MongoDB:
+
+```docker-compose up -d```
+
+
+Isso iniciará um contêiner Docker com o MongoDB configurado usando as informações fornecidas no arquivo `.env`.
+
+## Observações
+
+- Certifique-se de fornecer valores válidos para `MONGODB_USERNAME` e `MONGODB_PASSWORD` no arquivo `.env`.
+- O banco de dados estará acessível na porta especificada em `MONGODB_PORT` (no exemplo acima, a porta será mapeada para a porta `27019` no host local).
+- Os dados do MongoDB serão armazenados em um volume chamado `mongodb_data`, que será criado no diretório atual.
+- O contêiner do MongoDB será nomeado como `mongodb-mk-messenger`.
+
+
