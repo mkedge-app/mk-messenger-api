@@ -14,10 +14,7 @@ class SessionController {
       }
 
       // Verificar se a senha está correta
-      console.log(tenant.senha);
-      console.log(senha);
       const senhaCorreta = await bcrypt.compare(senha, tenant.senha);
-      console.log(senhaCorreta);
       if (!senhaCorreta) {
         return res.status(401).json({ error: 'Senha incorreta' });
       }
