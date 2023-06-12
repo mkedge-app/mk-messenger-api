@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import logger from '../logger';
 
-import MONGO_DB_URL from '../app/config/mongodb';
+import MONGO_DB_URL from '../config/mongodb';
 
 class Database {
   mongoConnection: typeof mongoose | undefined;
