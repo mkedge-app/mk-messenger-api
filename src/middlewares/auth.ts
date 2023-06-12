@@ -2,8 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import jwt from 'jsonwebtoken';
 import { JWT_CONFIG } from "../config/jwt";
 
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   tenantId?: string;
+  isTenantActive?: boolean;
 }
 
 // Middleware para autenticação do tenantId
@@ -21,7 +22,7 @@ export const AuthenticateTenant = (req: AuthenticatedRequest, res: Response, nex
   }
 
   try {
-    const decodedToken = jwt.verify(token, JWT_CONFIG.secret) as { tenantId: string };
+    const decodedToken = jwt.verify(token, JWT_CONFIG.secret) as { tenantId: string, isTenantActive?: boolean; };
 
     if (!decodedToken.tenantId) {
       return res.status(401).json({ error: 'Token inválido' });
@@ -29,6 +30,7 @@ export const AuthenticateTenant = (req: AuthenticatedRequest, res: Response, nex
 
     // Adiciona o tenantId ao objeto de requisição para uso posterior
     req.tenantId = decodedToken.tenantId;
+    req.isTenantActive = decodedToken.isTenantActive;
 
     // Continua para o próximo middleware ou rota
     next();

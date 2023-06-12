@@ -33,6 +33,7 @@ describe('SessionController', () => {
 
       expect(Tenant.findOne).toHaveBeenCalledWith({ usuario: 'john' });
       expect(bcrypt.compare).toHaveBeenCalledWith('password', 'hashedPassword');
+
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({ message: 'Autenticação bem-sucedida' });
     });
