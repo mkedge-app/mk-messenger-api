@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
 import Tenant from '../models/Tenant';
 
 class TenantController {
@@ -30,6 +31,59 @@ class TenantController {
       res.status(500).json({ error: 'Erro ao obter tenant' });
     }
   }
+
+  /**
+   * Method to create a new tenant
+   */
+  async create(req: Request, res: Response) {
+    const {
+      cnpj,
+      responsavel,
+      contato,
+      provedor,
+      database,
+      assinatura,
+      usuario,
+      senha
+    } = req.body;
+
+    const hashPwd = await bcrypt.hash(senha, 10)
+
+    try {
+      const tenant = await Tenant.create({
+        cnpj,
+        responsavel,
+        contato,
+        provedor,
+        database,
+        assinatura,
+        usuario,
+        senha: hashPwd,
+      });
+      res.status(201).json(tenant);
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao criar tenant' });
+    }
+  }
+
+  /**
+   * Method to delete a tenant by ID
+   */
+  async delete(req: Request, res: Response) {
+    const { id } = req.params;
+
+    try {
+      const deletedTenant = await Tenant.findByIdAndDelete(id);
+      if (!deletedTenant) {
+        return res.status(404).json({ error: 'Tenant não encontrado' });
+      }
+      res.status(200).json({ message: 'Tenant excluído com sucesso' });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao excluir tenant' });
+    }
+  }
+
+
 }
 
 export default new TenantController();
