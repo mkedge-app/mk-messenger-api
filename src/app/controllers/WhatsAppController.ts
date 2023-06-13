@@ -1,11 +1,11 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../middlewares/auth";
-import WhatsAppApi from '../../services/WhatsAppApi';
+import WhatsAppApi from "../../services/WhatsAppApi";
 
 class WhatsappController {
   async create(req: AuthenticatedRequest, res: Response) {
     if (!req.tenantId) {
-      return res.status(500).json({ error: 'TenantId não existe' });
+      return res.status(500).json({ error: "TenantId não existe" });
     }
 
     try {
@@ -13,7 +13,25 @@ class WhatsappController {
 
       const qrcode = response.data.qrcode.url;
 
-      return res.status(200).json({qrcode});
+      // const qrcode = old.replace('http://localhost:3333', 'http://localhost:3000')
+
+      console.log(qrcode)
+
+      return res.status(200).json({ qrcode });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async index(req: AuthenticatedRequest, res: Response) {
+    if (!req.tenantId) {
+      return res.status(500).json({ error: "TenantId não existe" });
+    }
+
+    try {
+      const response = await WhatsAppApi.listAllSessions(req.tenantId);
+
+      return res.status(200).json(response);
     } catch (err) {
       console.log(err);
     }

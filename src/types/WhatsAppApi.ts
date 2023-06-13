@@ -15,3 +15,18 @@ export interface WppInitResponse {
     version: string;
   };
 }
+
+export interface Instances {
+  instance_key: string,
+  phone_connected?: boolean,
+  webhookUrl: string | null,
+  user: {
+    id?: string,
+  },
+}
+
+export interface WppSessionResponse {
+  error: boolean;
+  message: string;
+  data: Instances[]
+}

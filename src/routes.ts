@@ -18,5 +18,6 @@ routes.delete('/tenants/:id', AuthenticateTenant, TenantController.delete);
 
 // Rotas de interação com o WhatsApp
 routes.get('/init-session', AuthenticateTenant, isSubscriptionActive, WhatsAppController.create)
+routes.get('/list-sessions', AuthenticateTenant, isSubscriptionActive, WhatsAppController.index)
 
 export default routes;
