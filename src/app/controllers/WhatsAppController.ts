@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../middlewares/auth";
-import { IgetQRCodeData, IinitResponseData } from '../../types/WhatsApp';
+import { IgetQRCodeData, IinitResponseData } from "../../types/WhatsApp";
 
 class WhatsappController {
   async create(req: AuthenticatedRequest, res: Response) {
@@ -17,14 +17,18 @@ class WhatsappController {
       const initInstanceData: IinitResponseData =
         await initInstanceResponse.json();
 
-      setTimeout(async () => {
-        const getQRCodeResponse = await fetch(
-          `http://localhost:3000/instance/qrbase64?key=${initInstanceData.key}`
-        );
-        const { qrcode }: IgetQRCodeData = await getQRCodeResponse.json();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        return res.status(200).json({ qrcode });
-      }, 1000);
+      const getQRCodeResponse = await fetch(
+        `http://localhost:3000/instance/qrbase64?key=${initInstanceData.key}`
+      );
+      const { qrcode }: IgetQRCodeData = await getQRCodeResponse.json();
+
+      if (qrcode === '') {
+        return res.status(500).json({ error: "Falha ao obter QRCode" });
+      }
+
+      return res.status(200).json({ qrcode });
     } catch (err) {
       console.log(err);
     }

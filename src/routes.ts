@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { AuthenticateTenant } from './middlewares/auth';
 import TenantController from './app/controllers/TenantController';
 import SessionController from './app/controllers/SessionController';
-import { isSubscriptionActive } from './middlewares/isSubscriptionActive';
 import WhatsAppController from './app/controllers/WhatsAppController';
 
 const routes = Router();
