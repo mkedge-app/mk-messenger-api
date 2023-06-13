@@ -3,6 +3,7 @@ import { AuthenticateTenant } from './middlewares/auth';
 import TenantController from './app/controllers/TenantController';
 import SessionController from './app/controllers/SessionController';
 import WhatsAppController from './app/controllers/WhatsAppController';
+import { isSubscriptionActive } from './middlewares/isSubscriptionActive';
 
 const routes = Router();
 
@@ -16,6 +17,6 @@ routes.get('/tenants/:id', AuthenticateTenant, TenantController.show);
 routes.delete('/tenants/:id', AuthenticateTenant, TenantController.delete);
 
 // Rotas de interação com o WhatsApp
-routes.post('/init-session', AuthenticateTenant, WhatsAppController.create)
+routes.get('/init-session', AuthenticateTenant, isSubscriptionActive, WhatsAppController.create)
 
 export default routes;

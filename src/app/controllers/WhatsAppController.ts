@@ -1,34 +1,19 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../../middlewares/auth";
-import { IgetQRCodeData, IinitResponseData } from "../../types/WhatsApp";
+import WhatsAppApi from '../../services/WhatsAppApi';
 
 class WhatsappController {
   async create(req: AuthenticatedRequest, res: Response) {
-    const isTenantActive = req.isTenantActive;
-
-    if (!isTenantActive) {
-      return res.status(403).json({ error: "Assinatura expirada" });
+    if (!req.tenantId) {
+      return res.status(500).json({ error: 'TenantId não existe' });
     }
 
     try {
-      const initInstanceResponse = await fetch(
-        `http://localhost:3000/instance/init?key=${req.tenantId}&token=123`
-      );
-      const initInstanceData: IinitResponseData =
-        await initInstanceResponse.json();
+      const response = await WhatsAppApi.initInstance(req.tenantId);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const qrcode = response.data.qrcode.url;
 
-      const getQRCodeResponse = await fetch(
-        `http://localhost:3000/instance/qrbase64?key=${initInstanceData.key}`
-      );
-      const { qrcode }: IgetQRCodeData = await getQRCodeResponse.json();
-
-      if (qrcode === '') {
-        return res.status(500).json({ error: "Falha ao obter QRCode" });
-      }
-
-      return res.status(200).json({ qrcode });
+      return res.status(200).json({qrcode});
     } catch (err) {
       console.log(err);
     }
