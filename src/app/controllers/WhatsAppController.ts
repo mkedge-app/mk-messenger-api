@@ -11,9 +11,13 @@ class WhatsappController {
     try {
       const response = await WhatsAppApi.initInstance(req.tenantId);
 
-      const qrcode = response.data.qrcode.url;
+      if (!response) {
+        return res.status(400).json({ error: "Usuário já iniciou uma instância" });
+      }
 
-      // const qrcode = old.replace('http://localhost:3333', 'http://localhost:3000')
+      const old = response.data.qrcode.url;
+
+      const qrcode = old.replace('http://localhost:3333', 'http://localhost:3000')
 
       console.log(qrcode)
 
