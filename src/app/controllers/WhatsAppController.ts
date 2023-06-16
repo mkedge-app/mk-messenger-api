@@ -1,26 +1,25 @@
 import { Request, Response } from "express";
-import { AuthenticatedRequest } from "../../middlewares/auth";
 import WhatsAppApi from "../../services/WhatsAppApi";
 
 class WhatsappController {
-  async create(req: AuthenticatedRequest, res: Response) {
-    if (!req.tenantId) {
+  async create(req: Request, res: Response) {
+    if (!req.body.key) {
       return res
         .status(500)
-        .json({ error: "tenantId não especificado na requisição" });
+        .json({ error: "Chave key obrigatória" });
     }
 
     const userAlreadyInitializedInstance =
-      await WhatsAppApi.verifyIfUserHasSession(req.tenantId);
+      await WhatsAppApi.verifyIfUserHasSession(req.body.key);
 
     if (userAlreadyInitializedInstance) {
       return res
         .status(400)
-        .json({ error: "Usuário já iniciou uma instância" });
+        .json({ error: "Usuário já iniciou uma sessão" });
     }
 
     try {
-      const response = await WhatsAppApi.initInstance(req.tenantId);
+      const response = await WhatsAppApi.initInstance(req.body.key);
 
       const old = response.data.qrcode.url;
 
