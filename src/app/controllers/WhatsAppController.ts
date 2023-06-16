@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import WhatsAppApi from "../../services/WhatsAppApi";
+import WhatsappService from "../../services/WhatsappService";
 
 class WhatsappController {
   async create(req: Request, res: Response) {
@@ -10,14 +10,14 @@ class WhatsappController {
     }
 
     try {
-      const session = await WhatsAppApi.getSessionByKey(req.body.key);
+      const session = await WhatsappService.getSessionByKey(req.body.key);
 
       if (session) {
         return res.status(400).json({ error: "Usuário já iniciou uma sessão" });
       }
 
       try {
-        const response = await WhatsAppApi.initInstance(req.body.key);
+        const response = await WhatsappService.initInstance(req.body.key);
         const qrcode = response.data.qrcode.url;
         return res.status(200).json({ qrcode });
       } catch (err) {
@@ -36,7 +36,7 @@ class WhatsappController {
     }
 
     try {
-      const session = await WhatsAppApi.getSessionByKey(req.params.key);
+      const session = await WhatsappService.getSessionByKey(req.params.key);
       return res.status(200).json(session);
     } catch (err) {
       return res.status(500).json({ error: "Falha ao obter sessão" });
