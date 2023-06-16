@@ -16,7 +16,7 @@ export interface WppInitResponse {
   };
 }
 
-export interface Instances {
+export interface Session {
   instance_key: string,
   phone_connected?: boolean,
   webhookUrl: string | null,
@@ -28,5 +28,5 @@ export interface Instances {
 export interface WppSessionResponse {
   error: boolean;
   message: string;
-  data: Instances[]
+  data: Session[]
 }
