@@ -1,97 +1,63 @@
-import bcrypt from "bcrypt";
-import { Request, Response } from "express";
-import SessionController from "../controllers/SessionController";
-import Tenant from "../models/Tenant";
+import { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import Tenant from '../models/Tenant';
+import SessionController from '../controllers/SessionController';
 
-jest.mock("../models/Tenant");
-
-describe("SessionController", () => {
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
-  let sessionController = SessionController;
+describe('SessionController', () => {
+  let req: Request;
+  let res: Response;
 
   beforeEach(() => {
-    mockRequest = {};
-    mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
+    req = {} as Request;
+    res = {} as Response;
+    res.status = jest.fn().mockReturnThis();
+    res.json = jest.fn().mockReturnThis();
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
-  describe("create", () => {
-    it("should authenticate the user and return a success message", async () => {
-      mockRequest.body = { usuario: "john", senha: "password" };
-      const mockTenant = {
-        usuario: "john",
-        senha: "hashedPassword",
-        assinatura: { ativa: true },
-      };
-      Tenant.findOne = jest.fn().mockResolvedValue(mockTenant);
-      bcrypt.compare = jest.fn().mockResolvedValue(true);
-
-      await sessionController.create(
-        mockRequest as Request,
-        mockResponse as Response
-      );
-
-      expect(Tenant.findOne).toHaveBeenCalledWith({ usuario: "john" });
-      expect(bcrypt.compare).toHaveBeenCalledWith("password", "hashedPassword");
-
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-    });
-
-    it("should handle user not found and return 401 status", async () => {
-      mockRequest.body = { usuario: "john", senha: "password" };
+  describe('create', () => {
+    it('should return 401 if user is not found', async () => {
+      req.body = { usuario: 'test', senha: 'password' };
       Tenant.findOne = jest.fn().mockResolvedValue(null);
 
-      await sessionController.create(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      await SessionController.create(req, res);
 
-      expect(Tenant.findOne).toHaveBeenCalledWith({ usuario: "john" });
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: "Usuário não encontrado",
-      });
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Usuário não encontrado' });
     });
 
-    it("should handle incorrect password and return 401 status", async () => {
-      mockRequest.body = { usuario: "john", senha: "password" };
-      const mockTenant = { usuario: "john", senha: "hashedPassword" };
-      Tenant.findOne = jest.fn().mockResolvedValue(mockTenant);
+    it('should return 401 if password is incorrect', async () => {
+      req.body = { usuario: 'test', senha: 'password' };
+      Tenant.findOne = jest.fn().mockResolvedValue({ senha: 'hashedPassword' });
       bcrypt.compare = jest.fn().mockResolvedValue(false);
 
-      await sessionController.create(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      await SessionController.create(req, res);
 
-      expect(Tenant.findOne).toHaveBeenCalledWith({ usuario: "john" });
-      expect(bcrypt.compare).toHaveBeenCalledWith("password", "hashedPassword");
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: "Senha incorreta",
-      });
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Senha incorreta' });
     });
 
-    it("should handle error and return 500 status", async () => {
-      mockRequest.body = { usuario: "john", senha: "password" };
-      Tenant.findOne = jest.fn().mockRejectedValue(new Error("Database error"));
+    it('should return 200 with token and expiresIn if authentication is successful', async () => {
+      req.body = { usuario: 'test', senha: 'password' };
+      const tenant = { id: 'tenantId', assinatura: { ativa: true } };
+      Tenant.findOne = jest.fn().mockResolvedValue(tenant);
+      bcrypt.compare = jest.fn().mockResolvedValue(true);
+      jwt.sign = jest.fn().mockReturnValue('token');
 
-      await sessionController.create(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      await SessionController.create(req, res);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: "Erro ao autenticar o tenant",
-      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ token: 'token', expiresIn: expect.any(Number) });
+    });
+
+    it('should return 500 if an error occurs', async () => {
+      req.body = { usuario: 'test', senha: 'password' };
+      Tenant.findOne = jest.fn().mockRejectedValue(new Error('Database error'));
+
+      await SessionController.create(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao autenticar o tenant' });
     });
   });
 });
