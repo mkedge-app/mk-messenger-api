@@ -1,35 +1,46 @@
 import { Response } from "express";
+import logger from "../../logger";
 import { AuthenticatedRequest } from "../../middlewares/auth";
 import WhatsAppApi from "../../services/WhatsAppApi";
 
 class WhatsappController {
   async create(req: AuthenticatedRequest, res: Response) {
     if (!req.tenantId) {
-      return res.status(500).json({ error: "TenantId não existe" });
+      return res
+        .status(500)
+        .json({ error: "tenantId não especificado na requisição" });
+    }
+
+    const userAlreadyInitializedInstance =
+      await WhatsAppApi.verifyIfUserHasSession(req.tenantId);
+
+    if (userAlreadyInitializedInstance) {
+      return res
+        .status(400)
+        .json({ error: "Usuário já iniciou uma instância" });
     }
 
     try {
       const response = await WhatsAppApi.initInstance(req.tenantId);
 
-      if (!response) {
-        return res.status(400).json({ error: "Usuário já iniciou uma instância" });
-      }
-
       const old = response.data.qrcode.url;
 
-      const qrcode = old.replace('http://localhost:3333', 'http://localhost:3000')
-
-      console.log(qrcode)
+      const qrcode = old.replace(
+        "http://localhost:3333",
+        "http://localhost:3000"
+      );
 
       return res.status(200).json({ qrcode });
     } catch (err) {
-      console.log(err);
+      return res.status(500).json({ error: "Erro ao iniciar instância" });
     }
   }
 
   async index(req: AuthenticatedRequest, res: Response) {
     if (!req.tenantId) {
-      return res.status(500).json({ error: "TenantId não existe" });
+      return res
+        .status(500)
+        .json({ error: "tenantId não especificado na requisição" });
     }
 
     try {
@@ -37,7 +48,7 @@ class WhatsappController {
 
       return res.status(200).json(response);
     } catch (err) {
-      console.log(err);
+      return res.status(500).json({ error: "Erro ao listar instâncias" });
     }
   }
 }
