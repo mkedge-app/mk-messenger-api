@@ -36,11 +36,10 @@ class WhatsappController {
     }
 
     try {
-      const response = await WhatsAppApi.listAllSessions();
-
-      return res.status(200).json(response);
+      const session = await WhatsAppApi.getSessionByKey(req.params.key);
+      return res.status(200).json(session);
     } catch (err) {
-      return res.status(500).json({ error: "Erro ao listar instâncias" });
+      return res.status(500).json({ error: "Falha ao obter sessão" });
     }
   }
 }
