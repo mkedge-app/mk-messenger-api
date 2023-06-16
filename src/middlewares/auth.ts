@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { JWT_CONFIG } from "../config/jwt";
 
-export interface AuthenticatedRequest extends Request {
+interface AuthenticatedRequest extends Request {
   tenantId?: string;
   isTenantActive?: boolean;
 }
