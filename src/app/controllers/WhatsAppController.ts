@@ -1,5 +1,4 @@
-import { Response } from "express";
-import logger from "../../logger";
+import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../../middlewares/auth";
 import WhatsAppApi from "../../services/WhatsAppApi";
 
@@ -36,15 +35,15 @@ class WhatsappController {
     }
   }
 
-  async index(req: AuthenticatedRequest, res: Response) {
-    if (!req.tenantId) {
+  async show(req: Request, res: Response) {
+    if (!req.params.key) {
       return res
         .status(500)
-        .json({ error: "tenantId não especificado na requisição" });
+        .json({ error: "Instance key não especificado na requisição" });
     }
 
     try {
-      const response = await WhatsAppApi.listAllSessions(req.tenantId);
+      const response = await WhatsAppApi.listAllSessions(req.params.key);
 
       return res.status(200).json(response);
     } catch (err) {
