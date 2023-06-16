@@ -1,7 +1,7 @@
 import { Router } from "express";
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
-import WhatsAppController from "./app/controllers/WhatsAppController";
+import WhatsAppController from "./app/controllers/WhatsappController";
 
 import { authenticateTenant } from "./middlewares/auth";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";

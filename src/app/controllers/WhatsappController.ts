@@ -21,10 +21,10 @@ class WhatsappController {
         const qrcode = response.data.qrcode.url;
         return res.status(200).json({ qrcode });
       } catch (err) {
-        return res.status(500).json({ error: "Erro ao iniciar instância" });
+        return res.status(500).json({ error: "Erro ao iniciar sessão" });
       }
     } catch (error) {
-      return res.status(500).json({ error: "Erro ao iniciar instância" });
+      return res.status(500).json({ error: "Erro ao iniciar sessão" });
     }
   }
 
