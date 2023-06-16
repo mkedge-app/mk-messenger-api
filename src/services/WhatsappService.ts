@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import { Session, WppInitResponse, WppSessionResponse } from "../types/WhatsAppApi";
 
-class WhatsAppApi {
+class WhatsappService {
   API_URL = process.env.API_URL as string;
   API_TOKEN: string = process.env.API_TOKEN as string;
 
@@ -12,16 +12,17 @@ class WhatsAppApi {
   }
 
   async listAllSessions(): Promise<WppSessionResponse> {
-    const response: AxiosResponse = await axios.get<any>(`${this.API_URL}/instance/listt`);
+    const response: AxiosResponse = await axios.get(`${this.API_URL}/instance/list`);
     return response.data;
   }
 
   async getSessionByKey(key: string): Promise<Session | undefined> {
     const response = await this.listAllSessions();
     const allSessions = response.data;
+    console.log(allSessions);
     const userSession = allSessions.find(({ instance_key }) => instance_key === key);
     return userSession;
   }
 }
 
-export default new WhatsAppApi();
+export default new WhatsappService();
