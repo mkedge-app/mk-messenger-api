@@ -9,27 +9,21 @@ class WhatsappController {
         .json({ error: "Chave key obrigatória" });
     }
 
-    const userAlreadyInitializedInstance =
-      await WhatsAppApi.verifyIfUserHasSession(req.body.key);
-
-    if (userAlreadyInitializedInstance) {
-      return res
-        .status(400)
-        .json({ error: "Usuário já iniciou uma sessão" });
-    }
-
     try {
-      const response = await WhatsAppApi.initInstance(req.body.key);
+      const session = await WhatsAppApi.getSessionByKey(req.body.key);
 
-      const old = response.data.qrcode.url;
+      if (session) {
+        return res.status(400).json({ error: "Usuário já iniciou uma sessão" });
+      }
 
-      const qrcode = old.replace(
-        "http://localhost:3333",
-        "http://localhost:3000"
-      );
-
-      return res.status(200).json({ qrcode });
-    } catch (err) {
+      try {
+        const response = await WhatsAppApi.initInstance(req.body.key);
+        const qrcode = response.data.qrcode.url;
+        return res.status(200).json({ qrcode });
+      } catch (err) {
+        return res.status(500).json({ error: "Erro ao iniciar instância" });
+      }
+    } catch (error) {
       return res.status(500).json({ error: "Erro ao iniciar instância" });
     }
   }
@@ -42,7 +36,7 @@ class WhatsappController {
     }
 
     try {
-      const response = await WhatsAppApi.listAllSessions(req.params.key);
+      const response = await WhatsAppApi.listAllSessions();
 
       return res.status(200).json(response);
     } catch (err) {
