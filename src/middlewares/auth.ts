@@ -13,7 +13,7 @@ interface DecodedToken {
 }
 
 // Middleware para autenticação do tenantId
-export const AuthenticateTenant = (
+export const authenticateTenant = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
