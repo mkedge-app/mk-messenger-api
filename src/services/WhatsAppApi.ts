@@ -1,49 +1,26 @@
 import axios, { AxiosResponse } from "axios";
-import {
-  Instances,
-  WppInitResponse,
-  WppSessionResponse,
-} from "../types/WhatsAppApi";
+import { Session, WppInitResponse, WppSessionResponse } from "../types/WhatsAppApi";
 
 class WhatsAppApi {
   API_URL = process.env.API_URL as string;
-  TOKEN: string = process.env.API_URL_TOKEN as string;
+  API_TOKEN: string = process.env.API_TOKEN as string;
 
   async initInstance(key: string): Promise<AxiosResponse<WppInitResponse>> {
     return axios.get(
-      `${this.API_URL}/instance/init?key=${key}&token=${this.TOKEN}`
+      `${this.API_URL}/instance/init?key=${key}&token=${this.API_TOKEN}`
     );
   }
 
-  async listAllSessions(
-    key: string
-  ): Promise<AxiosResponse<WppSessionResponse> | null | Instances[]> {
-    const response = await axios.get<WppSessionResponse>(
-      `${this.API_URL}/instance/list`
-    );
-
-    const userSessions = response.data.data.filter(
-      ({ instance_key }) => instance_key === key
-    );
-
-    if (
-      userSessions.some((user) => user.phone_connected === false) ||
-      userSessions.length === 0
-    ) {
-      return null;
-    }
-
-    return userSessions;
+  async listAllSessions(): Promise<WppSessionResponse> {
+    const response: AxiosResponse = await axios.get<any>(`${this.API_URL}/instance/listt`);
+    return response.data;
   }
 
-  async verifyIfUserHasSession(key: string): Promise<boolean> {
-    const userAlreadyInitializedInstance = await this.listAllSessions(key);
-
-    if (userAlreadyInitializedInstance) {
-      return true;
-    }
-
-    return false;
+  async getSessionByKey(key: string): Promise<Session | undefined> {
+    const response = await this.listAllSessions();
+    const allSessions = response.data;
+    const userSession = allSessions.find(({ instance_key }) => instance_key === key);
+    return userSession;
   }
 }
 
