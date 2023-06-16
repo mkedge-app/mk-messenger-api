@@ -1,5 +1,4 @@
 import { Router } from "express";
-
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
 import WhatsAppController from "./app/controllers/WhatsAppController";
@@ -26,10 +25,10 @@ routes.post(
   WhatsAppController.create
 );
 routes.get(
-  "/whatsapp/sessions/instances",
+  "/whatsapp/sessions/:key",
   authenticateTenant,
   tenantStatusCheck,
-  WhatsAppController.index
+  WhatsAppController.show
 );
 
 export default routes;
