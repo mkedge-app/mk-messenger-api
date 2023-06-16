@@ -29,14 +29,13 @@ class WhatsappController {
   }
 
   async show(req: Request, res: Response) {
-    if (!req.params.key) {
-      return res
-        .status(500)
-        .json({ error: "Instance key não especificado na requisição" });
-    }
-
     try {
-      const session = await WhatsappService.getSessionByKey(req.params.key);
+      const session = await WhatsappService.getSessionByKey('lucas');
+
+      if (!session) {
+        return res.status(400).json({ error: "Sessão não encontrada" });
+      }
+
       return res.status(200).json(session);
     } catch (err) {
       return res.status(500).json({ error: "Falha ao obter sessão" });
