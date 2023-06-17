@@ -3,7 +3,11 @@ import jwt, { VerifyErrors } from "jsonwebtoken";
 import { JWT_CONFIG } from "../config/jwt";
 import { AuthenticateTenantResponse, AuthenticatedRequest, DecodedToken } from "../types/authentication";
 
-export const authenticateTenant = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<AuthenticateTenantResponse> => {
+export const authenticateTenant = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<AuthenticateTenantResponse> => {
   // Verificar se o cabeçalho de autorização (Authorization) está presente na requisição
   const authHeader = req.headers.authorization;
   if (!authHeader) {
