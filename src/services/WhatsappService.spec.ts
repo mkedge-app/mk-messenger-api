@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import WhatsappService from "./WhatsappService";
+import { Session } from "../types/WhatsAppApi";
 jest.mock("axios");
 
 describe("WhatsappService", () => {
@@ -47,14 +48,34 @@ describe("WhatsappService", () => {
   });
 
   it("should get a session by key", async () => {
-    const mockedSessions = ["test_key", "other_key"];
-    jest
-      .spyOn(WhatsappService, "listAllSessions")
-      .mockResolvedValueOnce({ ...mockAxiosResponse, data: mockedSessions });
+    const mockedSessions: Session[] = [
+      {
+        instance_key: 'test_key',
+        phone_connected: true,
+        webhookUrl: 'https://example.com/webhook',
+        user: {
+          id: '123',
+        },
+      },
+      {
+        instance_key: 'other_key',
+        phone_connected: true,
+        webhookUrl: 'https://example.com/webhook',
+        user: {
+          id: '456',
+        },
+      }
+    ];
+
+    jest.spyOn(WhatsappService, "listAllSessions").mockResolvedValueOnce({
+      data: mockedSessions,
+      error: false,
+      message: ''
+    });
 
     const response = await WhatsappService.getSessionByKey("test_key");
 
-    expect(response).toEqual("test_key");
+    expect(response).toEqual(mockedSessions[0]);
     expect(WhatsappService.listAllSessions).toHaveBeenCalledTimes(1);
   });
 
