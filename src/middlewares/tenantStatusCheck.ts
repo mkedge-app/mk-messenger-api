@@ -1,5 +1,5 @@
 import { NextFunction, Response } from 'express';
-import { AuthenticatedRequest } from './auth';
+import { AuthenticatedRequest } from '../types/authentication';
 
 export const tenantStatusCheck = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const isTenantActive = req.isTenantActive;
