@@ -1,54 +1,43 @@
 import { NextFunction, Response } from "express";
-import jwt, { VerifyErrors } from "jsonwebtoken";
-import { JWT_CONFIG } from "../config/jwt";
-import { AuthenticateTenantResponse, AuthenticatedRequest, DecodedToken } from "../types/authentication";
+import { VerifyErrors } from "jsonwebtoken";
+import AuthUtils from "../services/AuthUtils";
+import { AuthenticateTenantResponse, AuthenticatedRequest } from "../types/authentication";
 
-export const authenticateTenant = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<AuthenticateTenantResponse> => {
-  // Verificar se o cabeçalho de autorização (Authorization) está presente na requisição
+export const authenticateTenant = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<AuthenticateTenantResponse> => {
+  // Get the authorization header from the request
   const authHeader = req.headers.authorization;
+
+  // If the authorization header is missing, handle the missing token error
   if (!authHeader) {
-    return res.status(401).json({ error: "Token não fornecido" });
+    return AuthUtils.handleTokenMissing(res);
   }
 
-  // Verifica se o cabeçalho de autenticação contém um token válido
+  // Split the authorization header into scheme and token
   const [scheme, token] = authHeader.split(" ");
+
+  // If the scheme or token is missing, or the scheme is not "bearer", handle the invalid token error
   if (!scheme || !token || scheme.toLowerCase() !== "bearer") {
-    return res.status(401).json({ error: "Token inválido" });
+    return AuthUtils.handleInvalidToken(res);
   }
 
   try {
-    // Verifica e decodifica o token
-    const decodedToken = jwt.verify(token, JWT_CONFIG.secret) as DecodedToken;
+    // Verify the token and decode its payload
+    const decodedToken = AuthUtils.verifyToken(token);
 
-    // Verifica se existe um valor para tenantId e isTenantActive dentro do token
+    // If the decoded token is missing the required properties, handle the missing info error
     if (!decodedToken.hasOwnProperty('tenantId') || !decodedToken.hasOwnProperty('isTenantActive')) {
-      return res.status(401).json({ error: "O token não contém as informações necessárias" });
+      return AuthUtils.handleMissingInfo(res);
     }
 
-    // Adiciona o tenantId ao objeto de requisição para uso posterior
+    // Set the tenantId and isTenantActive properties on the request object
     req.tenantId = decodedToken.tenantId;
     req.isTenantActive = decodedToken.isTenantActive;
 
-    // Continua para o próximo middleware ou rota
+    // Call the next function
     next();
   } catch (error) {
+    // If there is an error verifying the token, handle the token error
     const jwtError = error as VerifyErrors;
-
-    if (jwtError.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Token inválido" });
-    } else if (jwtError.name === "NotBeforeError") {
-      return res.status(401).json({ error: "Token ainda não é válido" });
-    } else if (jwtError.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Token expirado" });
-    } else if (jwtError.name === "SignatureVerificationError") {
-      return res.status(401).json({ error: "Erro na verificação da assinatura do token" });
-    }
-
-    // Tratamento de outros erros não específicos
-    return res.status(500).json({ error: "Erro ao processar o token" });
+    return AuthUtils.handleTokenError(res, jwtError);
   }
 };
