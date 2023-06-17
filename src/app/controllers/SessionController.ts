@@ -22,7 +22,8 @@ class SessionController {
       }
 
       // Gerar o token JWT
-      const payload = { tenantId: tenant.id };
+      const payload = { tenantId: tenant.id, isTenantActive: tenant.assinatura.ativa };
+
       const token = jwt.sign(payload, JWT_CONFIG.secret, { expiresIn: JWT_CONFIG.expiresIn });
 
       // Autenticação bem-sucedida
