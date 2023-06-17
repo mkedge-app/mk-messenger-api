@@ -9,9 +9,9 @@ class TenantController {
   async index(req: Request, res: Response) {
     try {
       const tenants = await Tenant.find();
-      res.status(200).json(tenants);
+      return res.status(200).json(tenants);
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao listar tenants' });
+      return res.status(500).json({ error: 'Erro ao listar tenants' });
     }
   }
 
@@ -26,9 +26,9 @@ class TenantController {
       if (!tenant) {
         return res.status(404).json({ error: 'Tenant não encontrado' });
       }
-      res.status(200).json(tenant);
+      return res.status(200).json(tenant);
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao obter tenant' });
+      return res.status(500).json({ error: 'Erro ao obter tenant' });
     }
   }
 
@@ -60,9 +60,9 @@ class TenantController {
         usuario,
         senha: hashPwd,
       });
-      res.status(201).json(tenant);
+      return res.status(201).json(tenant);
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao criar tenant' });
+      return res.status(500).json({ error: 'Erro ao criar tenant' });
     }
   }
 
@@ -77,13 +77,11 @@ class TenantController {
       if (!deletedTenant) {
         return res.status(404).json({ error: 'Tenant não encontrado' });
       }
-      res.status(200).json({ message: 'Tenant excluído com sucesso' });
+      return res.status(200).json({ message: 'Tenant excluído com sucesso' });
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao excluir tenant' });
+      return res.status(500).json({ error: 'Erro ao excluir tenant' });
     }
   }
-
-
 }
 
 export default new TenantController();
