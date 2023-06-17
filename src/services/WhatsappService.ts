@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import { WppInitResponse } from "../types/WhatsAppApi";
+import { Session, WppInitResponse, WppSessionResponse } from "../types/WhatsAppApi";
 
 class WhatsappService {
   API_URL = process.env.API_URL as string;
@@ -11,15 +11,23 @@ class WhatsappService {
     );
   }
 
-  async listAllSessions(): Promise<AxiosResponse<string[]>> {
-    const response = await axios.get(`${this.API_URL}/instance/list`);
-    return response.data;
+  async listAllSessions(): Promise<WppSessionResponse> {
+    return new Promise<WppSessionResponse>((resolve, reject) => {
+      axios
+        .get(`${this.API_URL}/instance/list`)
+        .then((response: AxiosResponse<WppSessionResponse>) => {
+          resolve(response.data);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   }
 
-  async getSessionByKey(key: string): Promise<string | undefined> {
+  async getSessionByKey(key: string): Promise<Session | undefined> {
     const response = await this.listAllSessions();
-    const allSessions: string[] = response.data;
-    const userSession = allSessions.find((instance_key) => instance_key === key);
+    const allSessions = response.data;
+    const userSession = allSessions.find((session) => session.instance_key === key);
     return userSession;
   }
 }
