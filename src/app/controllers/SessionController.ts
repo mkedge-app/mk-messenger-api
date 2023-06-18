@@ -27,7 +27,6 @@ class SessionController {
 
       const token = jwt.sign(payload, JWT_CONFIG.secret, { expiresIn: JWT_CONFIG.expiresIn });
 
-
       // Autenticação bem-sucedida
       return res.status(200).json({ token, expiresIn: parseInt(JWT_CONFIG.expiresIn) });
     } catch (error) {
