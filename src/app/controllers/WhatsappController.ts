@@ -29,8 +29,14 @@ class WhatsappController {
   }
 
   async show(req: Request, res: Response) {
+    if (!req.params.key) {
+      return res
+        .status(400)
+        .json({ error: "Chave key obrigatória" });
+    }
+
     try {
-      const session = await WhatsappService.getSessionByKey('lucas');
+      const session = await WhatsappService.getSessionByKey(req.params.key);
 
       if (!session) {
         return res.status(400).json({ error: "Sessão não encontrada" });
