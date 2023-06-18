@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Tenant from '../models/Tenant';
 import { JWT_CONFIG } from '../../config/jwt';
-import logger from '../../logger';
 
 class SessionController {
   async create(req: Request, res: Response) {
