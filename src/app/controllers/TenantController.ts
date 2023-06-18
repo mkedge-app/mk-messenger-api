@@ -21,6 +21,12 @@ class TenantController {
   async show(req: Request, res: Response) {
     const { id } = req.params;
 
+    if (!id) {
+      return res
+        .status(400)
+        .json({ error: "Id é obrigatória" });
+    }
+
     try {
       const tenant = await Tenant.findById(id);
       if (!tenant) {
@@ -71,6 +77,12 @@ class TenantController {
    */
   async delete(req: Request, res: Response) {
     const { id } = req.params;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ error: "Id é obrigatória" });
+    }
 
     try {
       const deletedTenant = await Tenant.findByIdAndDelete(id);
