@@ -28,7 +28,11 @@ class WhatsappController {
     }
   }
 
+  /**
+   * Retrieves a session by key and returns it as a JSON response.
+   */
   async show(req: Request, res: Response) {
+    // Check if the key parameter is missing
     if (!req.params.key) {
       return res
         .status(400)
@@ -36,14 +40,18 @@ class WhatsappController {
     }
 
     try {
+      // Retrieve the session by key
       const session = await WhatsappService.getSessionByKey(req.params.key);
 
+      // Check if the session was not found
       if (!session) {
         return res.status(400).json({ error: "Sessão não encontrada" });
       }
 
+      // Return the session as a JSON response
       return res.status(200).json(session);
     } catch (err) {
+      // Return an error response if there was a failure
       return res.status(500).json({ error: "Falha ao obter sessão" });
     }
   }
