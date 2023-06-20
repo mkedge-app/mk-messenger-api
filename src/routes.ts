@@ -5,8 +5,11 @@ import WhatsAppController from "./app/controllers/WhatsappController";
 
 import { authenticateTenant } from "./middlewares/authenticateTenant";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
+import WppSessionController from "./app/controllers/WppSessionController";
 
 const routes = Router();
+
+routes.post("/init", WppSessionController.create);
 
 // Rota de autenticação
 routes.post("/session", SessionController.create);
