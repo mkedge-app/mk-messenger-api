@@ -1,53 +1,78 @@
-import { Server as SocketServer, Socket } from 'socket.io';
-import logger from './logger';
-import WhatsAppSessionManager from './services/WhatsAppSessionManager';
+import WebSocket from 'ws';
+import { IncomingMessage } from 'http';
+import AuthUtils from './services/AuthUtils';
+import { VerifyErrors } from 'jsonwebtoken';
 
-class WebSocket {
-  private connections: Socket[];
+class WebSocketServer {
+  private wss: WebSocket.Server;
+  private activeConnections: WebSocket[] = [];
 
-  constructor(private io: SocketServer) {
-    this.connections = [];
+  constructor(server: WebSocket.Server) {
+    this.wss = server;
     this.setupWebSocket();
   }
 
   private setupWebSocket(): void {
-    this.io.on('connection', (socket: Socket) => {
-      logger.info('Nova conexão:', socket.id);
+    this.wss.on('connection', (ws: WebSocket, req: IncomingMessage): void => {
+      const token = req.headers.authorization?.replace('Bearer ', '');
 
-      this.connections.push(socket);
-
-      this.handleAuthentication(socket)
-        .then(() => {
-          WhatsAppSessionManager.createSession(socket);
-        })
-        .catch((error) => {
-          logger.error('Falha na autenticação do socket:', error);
-          socket.disconnect(true);
-        });
-
-      socket.on('disconnect', () => {
-        logger.info('Cliente desconectado:', socket.id);
-
-        const index = this.connections.indexOf(socket);
-        if (index > -1) {
-          this.connections.splice(index, 1);
-        }
-      });
-    });
-  }
-
-  private handleAuthentication(socket: Socket): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      const token = socket.handshake.auth.token;
-
-      // Verificar se o token é válido ou corresponde a um usuário autenticado
-      if (token !== 'seu_token_de_autenticacao') {
-        reject(new Error('Falha na autenticação do socket.'));
-      } else {
-        resolve();
+      if (!token) {
+        ws.send('Token não fornecido');
+        ws.close();
       }
+
+      if (token) {
+        try {
+          const decodedToken = AuthUtils.verifyToken(token);
+
+          if (!decodedToken.hasOwnProperty('tenantId') || !decodedToken.hasOwnProperty('isTenantActive')) {
+            ws.send('O token não contém as informações necessárias');
+            ws.close();
+          }
+
+          this.activeConnections.push(ws);
+          ws.send('Conexão estabelecida com sucesso!');
+
+          ws.on('message', (message) => {
+            ws.send(message.toString());
+          });
+        } catch (error) {
+          // If there is an error verifying the token, handle the token error
+          const jwtError = error as VerifyErrors;
+
+          const errorMessages: Record<string, string> = {
+            JsonWebTokenError: "Token inválido",
+            NotBeforeError: "Token ainda não é válido",
+            TokenExpiredError: "Token expirado",
+            SignatureVerificationError: "Erro na verificação da assinatura do token"
+          };
+
+          const errorName = jwtError.name;
+          const errorMessage = errorMessages[errorName];
+
+          if (errorMessage) {
+            ws.send(errorMessage);
+            ws.close();
+          } else {
+            ws.send('Erro ao processar o token');
+            ws.close();
+          }
+
+        }
+      }
+
+      ws.on('close', () => {
+        console.log('Cliente desconectado');
+
+        const index = this.activeConnections.indexOf(ws);
+        if (index > -1) {
+          this.activeConnections.splice(index, 1);
+        }
+
+        // Lógica para manipular o fechamento da conexão
+      });
     });
   }
 }
 
-export default WebSocket;
+export default WebSocketServer;
