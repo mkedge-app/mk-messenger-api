@@ -5,7 +5,6 @@ class TokenValidator {
     try {
       const decodedToken = AuthUtils.verifyToken(token);
 
-      // If the decoded token is missing the required properties, handle the missing info error
       if (!decodedToken.hasOwnProperty('tenantId') || !decodedToken.hasOwnProperty('isTenantActive')) {
         return false;
       }
