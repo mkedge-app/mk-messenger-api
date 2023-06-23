@@ -58,11 +58,6 @@ class WebSocketServer {
     ws.send(message);
   }
 
-  private handleMessage(ws: WebSocket, message: WebSocket.Data): void {
-    // Lidar com a mensagem recebida do cliente
-    ws.send(message.toString());
-  }
-
   private removeConnection(ws: WebSocket): void {
     // Remover a conexão da lista de conexões ativas
     const index = this.activeConnections.indexOf(ws);
