@@ -2,10 +2,10 @@ import { Router } from "express";
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
 import WhatsAppController from "./app/controllers/WhatsappController";
+import WppSessionController from "./app/controllers/WppSessionController";
 
 import { authenticateTenant } from "./middlewares/authenticateTenant";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
-import WppSessionController from "./app/controllers/WppSessionController";
 
 const routes = Router();
 
