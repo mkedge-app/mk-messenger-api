@@ -1,21 +1,21 @@
 import express, { Express } from 'express';
 import cors from 'cors';
-import http, { Server } from 'http';
-import { Server as SocketServer } from 'socket.io';
+import http from 'http';
+import WebSocket from 'ws';
 import routes from './routes';
-import WebSocket from './websocket';
+import WebSocketServer from './websocket/WebSocketServer';
 
 import './database';
 
 class App {
   public app: Express;
-  public server: Server;
-  public io: SocketServer;
+  public server: http.Server;
+  public wss: WebSocket.Server;
 
   constructor() {
     this.app = express();
     this.server = http.createServer(this.app);
-    this.io = new SocketServer(this.server);
+    this.wss = new WebSocket.Server({ server: this.server });
 
     this.middlewares();
     this.routes();
@@ -32,7 +32,7 @@ class App {
   }
 
   private setupWebSocket(): void {
-    new WebSocket(this.io);
+    new WebSocketServer(this.wss);
   }
 }
 
