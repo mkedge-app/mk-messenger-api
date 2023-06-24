@@ -8,7 +8,7 @@ class AuthMiddleware {
     this.tokenValidator = new TokenValidator();
   }
 
-  public handleConnection(req: IncomingMessage, callback: (authenticated: boolean) => void): void {
+  public handleConnection(req: IncomingMessage, callback: (authenticated: boolean, tenantId?: string) => void): void {
     const token = req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
@@ -17,7 +17,9 @@ class AuthMiddleware {
     }
 
     const authenticated = this.tokenValidator.validateToken(token);
-    callback(authenticated);
+    const tenantId = this.tokenValidator.extractTenantId(token);
+
+    callback(authenticated, tenantId);
   }
 }
 
