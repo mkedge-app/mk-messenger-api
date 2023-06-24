@@ -67,10 +67,6 @@ class WhatsAppSessionManager {
     }
   }
 
-  public getActiveSocks(): SocketMap {
-    return this.socks;
-  }
-
   private resolveTokensFolderPath(name: string): string {
     const tokensFolderPath = path.resolve(__dirname, '..', '..', 'tokens', name);
     return tokensFolderPath;
@@ -84,6 +80,10 @@ class WhatsAppSessionManager {
       .catch((error) => {
         logger.error(`Erro ao excluir pasta: ${error}`);
       });
+  }
+
+  public getActiveSocks(): SocketMap {
+    return this.socks;
   }
 
   public async initSessions(): Promise<void> {
