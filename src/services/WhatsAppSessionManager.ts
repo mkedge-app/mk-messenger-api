@@ -17,57 +17,64 @@ class WhatsAppSessionManager {
       throw new Error("O nome da sessão é obrigatório");
     }
 
-    // Carregar as informações de autenticação do arquivo
     const { state, saveCreds } = await useMultiFileAuthState(`tokens/${name}`);
 
-    // Criar um novo socket WhatsApp
-    const sock = makeWASocket({ printQRInTerminal: true, auth: state });
+    const socketWhatsApp = await this.createSocketWhatsApp(name, state, saveCreds);
 
-    // Registrar um ouvinte para atualizações das credenciais
-    sock.ev.on('creds.update', (res) => {
-      saveCreds();
-    });
+    this.socks[name] = socketWhatsApp;
 
-    // Registrar um ouvinte para atualizações de conexão
-    sock.ev.on('connection.update', (update) => {
-      const { connection, lastDisconnect, qr } = update;
-      const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
-
-      if (connection === 'close') {
-        if (statusCode === DisconnectReason.loggedOut) {
-          logger.info('Conexão fechada devido a logout');
-          const tokensFolderPath = this.resolveTokensFolderPath(name);
-          this.deleteFolderRecursive(tokensFolderPath);
-
-          // Remover a conexão do SocketMap
-          delete this.socks[name];
-        } else if (statusCode === DisconnectReason.connectionLost) {
-          logger.info('Conexão perdida');
-          // Lógica específica para tratamento de conexão perdida
-        } else if (statusCode === DisconnectReason.timedOut) {
-          logger.info('Conexão expirada');
-          // Lógica específica para tratamento de tempo limite
-        } else if (statusCode === DisconnectReason.connectionClosed) {
-          logger.info('Conexão fechada');
-          // Lógica específica para tratamento de conexão fechada
-        } else {
-          logger.info('Conexão fechada com motivo desconhecido');
-          this.createSession(socket, name);
-        }
-      } else if (connection === 'open') {
-        logger.info('Conexão estabelecida');
-        // Lógica para tratamento de conexão estabelecida
-      }
-    });
-
-    // Adicionar o novo socket à lista de sockets ativos usando o nome como chave
-    this.socks[name] = sock;
-
-    // Se um socket foi fornecido, realizar ações específicas
     if (socket) {
       // Enviar status para o usuário que solicitou
       // ...
     }
+  }
+
+  private async createSocketWhatsApp(name: string, authState: any, saveCreds: () => void): Promise<any> {
+    const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: authState });
+
+    socketWhatsApp.ev.on('creds.update', () => {
+      saveCreds();
+    });
+
+    socketWhatsApp.ev.on('connection.update', (update) => {
+      this.handleConnectionUpdate(name, update);
+    });
+
+    return socketWhatsApp;
+  }
+
+  private handleConnectionUpdate(name: string, update: any): void {
+    const { connection, lastDisconnect, qr } = update;
+    const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+
+    if (connection === 'close') {
+      if (statusCode === DisconnectReason.loggedOut) {
+        logger.info('Conexão fechada devido a logout');
+        this.handleLoggedOut(name);
+      } else if (statusCode === DisconnectReason.connectionLost) {
+        logger.info('Conexão perdida');
+        // Lógica específica para tratamento de conexão perdida
+      } else if (statusCode === DisconnectReason.timedOut) {
+        logger.info('Conexão expirada');
+        // Lógica específica para tratamento de tempo limite
+      } else if (statusCode === DisconnectReason.connectionClosed) {
+        logger.info('Conexão fechada');
+        // Lógica específica para tratamento de conexão fechada
+      } else {
+        logger.info('Conexão fechada com motivo desconhecido');
+        this.createSession(undefined, name);
+      }
+    } else if (connection === 'open') {
+      logger.info('Conexão estabelecida');
+      // Lógica para tratamento de conexão estabelecida
+    }
+  }
+
+  private handleLoggedOut(name: string): void {
+    const tokensFolderPath = this.resolveTokensFolderPath(name);
+    this.deleteFolderRecursive(tokensFolderPath);
+
+    delete this.socks[name];
   }
 
   private resolveTokensFolderPath(name: string): string {
