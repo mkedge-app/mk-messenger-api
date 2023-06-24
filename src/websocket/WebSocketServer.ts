@@ -5,6 +5,7 @@ import AuthMiddleware from './middlewares/AuthMiddleware';
 import WhatsAppSessionManager from '../services/WhatsAppSessionManager';
 import logger from '../logger';
 import { QRCodeData } from '../types/WhatsAppApi';
+import QRCodeSubscriber from './services/QRCodeSubscriber';
 
 interface SocketMap {
   [name: string]: WebSocket;
@@ -15,11 +16,13 @@ class WebSocketServer {
   private activeConnections: SocketMap = {};
   private authMiddleware: AuthMiddleware;
   private qrCodeSubject: Subject<QRCodeData>;
+  private qrCodeSubscriber: QRCodeSubscriber;
 
   constructor(server: WebSocket.Server) {
     this.wss = server;
     this.authMiddleware = new AuthMiddleware();
     this.qrCodeSubject = WhatsAppSessionManager.getQrCodeObservable();
+    this.qrCodeSubscriber = new QRCodeSubscriber(this.activeConnections);
     this.setupWebSocket();
     this.subscribeToQrCodeSubject();
     logger.info('WebSocketServer inicializado');
@@ -98,27 +101,8 @@ class WebSocketServer {
   private subscribeToQrCodeSubject(): void {
     this.qrCodeSubject.subscribe((data: QRCodeData) => {
       // Enviar o QR code para o cliente (WebSocket)
-      this.sendQrCodeToClient(data);
+      this.qrCodeSubscriber.sendQrCodeToClient(data);
     });
-  }
-
-  private sendQrCodeToClient(data: QRCodeData): void {
-    const { name, qrcode } = data;
-    const qrCodeResponse = {
-      success: true,
-      message: 'QR code gerado com sucesso',
-      data: {
-        qrCode: qrcode,
-      }
-    };
-
-    // Enviar o QR code para o cliente que solicitou
-    const ws = this.activeConnections[name];
-    if (ws) {
-      ws.send(JSON.stringify(qrCodeResponse));
-    } else {
-      logger.error(`Cliente '${name}' não encontrado`);
-    }
   }
 }
 
