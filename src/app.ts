@@ -4,6 +4,7 @@ import http from 'http';
 import WebSocket from 'ws';
 import routes from './routes';
 import WebSocketServer from './websocket/WebSocketServer';
+import WhatsAppSessionManager from './services/WhatsAppSessionManager';
 
 import './database';
 
@@ -20,6 +21,7 @@ class App {
     this.middlewares();
     this.routes();
     this.setupWebSocket();
+    this.initSessions();
   }
 
   private middlewares(): void {
@@ -33,6 +35,10 @@ class App {
 
   private setupWebSocket(): void {
     new WebSocketServer(this.wss);
+  }
+
+  private async initSessions(): Promise<void> {
+    await WhatsAppSessionManager.initSessions();
   }
 }
 
