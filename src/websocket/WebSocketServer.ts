@@ -17,10 +17,10 @@ class WebSocketServer {
   private setupWebSocket(): void {
     this.wss.on('connection', (ws: WebSocket, req: IncomingMessage): void => {
       // Middleware de autenticação
-      this.authMiddleware.handleConnection(req, (authenticated: boolean) => {
+      this.authMiddleware.handleConnection(req, (authenticated: boolean, tenantId?: string) => {
         if (authenticated) {
           // Lidar com a conexão autenticada
-          this.handleAuthenticatedConnection(ws);
+          this.handleAuthenticatedConnection(ws, tenantId);
         } else {
           // Lidar com a conexão não autorizada
           this.handleUnauthorizedConnection(ws);
@@ -29,14 +29,14 @@ class WebSocketServer {
     });
   }
 
-  private handleAuthenticatedConnection(ws: WebSocket): void {
+  private handleAuthenticatedConnection(ws: WebSocket, tenantId?: string): void {
     // Adicionar a conexão ativa à lista de conexões
     this.activeConnections.push(ws);
     // Enviar mensagem de sucesso para o cliente
     this.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
 
-    // Criar uma sessão de gerenciamento do WhatsApp para a conexão
-    WhatsAppSessionManager.createSession(ws);
+    // Criar uma sessão de gerenciamento do WhatsApp para a conexão, passando o tenantId, se disponível
+    WhatsAppSessionManager.createSession(ws, tenantId as string);
 
     ws.on('close', () => {
       console.log('Cliente desconectado');
