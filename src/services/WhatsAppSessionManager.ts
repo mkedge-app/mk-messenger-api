@@ -12,7 +12,7 @@ interface SocketMap {
 class WhatsAppSessionManager {
   private socks: SocketMap = {};
 
-  public async createSession(socket: WebSocket | undefined, name: string | undefined): Promise<void> {
+  public async createSession(socket: WebSocket | undefined, name: string): Promise<void> {
     if (!name) {
       throw new Error("O nome da sessão é obrigatório");
     }
