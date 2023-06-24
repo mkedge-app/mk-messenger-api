@@ -1,9 +1,9 @@
 import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import logger from '../logger';
-import WebSocket from 'ws';
 import fs from 'fs-extra';
 import path from 'path';
+import { Subject } from 'rxjs';
 
 interface SocketMap {
   [name: string]: any;
@@ -11,41 +11,55 @@ interface SocketMap {
 
 class WhatsAppSessionManager {
   private socks: SocketMap = {};
+  private qrCodeSubject: Subject<string>;
 
-  public async createSession(socket: WebSocket | undefined, name: string): Promise<void> {
+  constructor() {
+    this.qrCodeSubject = new Subject<string>();
+    logger.info('WhatsAppSessionManager inicializado');
+  }
+
+  public async createSession(name: string): Promise<void> {
     if (!name) {
       throw new Error("O nome da sessão é obrigatório");
     }
 
     const { state, saveCreds } = await useMultiFileAuthState(`tokens/${name}`);
 
-    const socketWhatsApp = await this.createSocketWhatsApp(name, state, saveCreds);
-
-    this.socks[name] = socketWhatsApp;
-
-    if (socket) {
-      // Enviar status para o usuário que solicitou
-      // ...
-    }
+    this.createSocketWhatsApp(name, state, saveCreds);
   }
 
-  private async createSocketWhatsApp(name: string, authState: any, saveCreds: () => void): Promise<any> {
+  private createSocketWhatsApp(name: string, authState: any, saveCreds: () => void): void {
+    logger.info(`Criando sessão para ${name}...`);
     const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: authState });
 
+    logger.info(`Evento 'creds.update' foi assinado para o socket pertencente a ${name}`);
     socketWhatsApp.ev.on('creds.update', () => {
       saveCreds();
     });
 
     socketWhatsApp.ev.on('connection.update', (update) => {
+      logger.info(`Evento 'connection.update' foi assinado para o socket pertencente a ${name}`);
       this.handleConnectionUpdate(name, update);
     });
 
-    return socketWhatsApp;
+    this.socks[name] = socketWhatsApp;
   }
 
   private handleConnectionUpdate(name: string, update: any): void {
+    logger.info(`Atualização de conexão do socket de ${name} recebida`);
+
     const { connection, lastDisconnect, qr } = update;
     const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+
+    if (connection === 'connecting') {
+      logger.info('Status de conexão: Conectando...');
+    }
+
+    if (connection === undefined && 'qr' in update) {
+      logger.info('QR code gerado');
+      this.qrCodeSubject.next(qr);
+      return;
+    }
 
     if (connection === 'close') {
       if (statusCode === DisconnectReason.loggedOut) {
@@ -62,7 +76,7 @@ class WhatsAppSessionManager {
         // Lógica específica para tratamento de conexão fechada
       } else {
         logger.info('Conexão fechada com motivo desconhecido');
-        this.createSession(undefined, name);
+        this.createSession(name);
       }
     } else if (connection === 'open') {
       logger.info('Conexão estabelecida');
@@ -96,14 +110,25 @@ class WhatsAppSessionManager {
     return this.socks;
   }
 
+  public getQrCodeObservable(): Subject<string> {
+    return this.qrCodeSubject;
+  }
+
   public async initSessions(): Promise<void> {
     const tokensFolder = path.resolve(__dirname, '..', '..', 'tokens');
     const folderNames = await fs.readdir(tokensFolder);
 
     for (const folderName of folderNames) {
       const sessionName = folderName;
-      logger.info(`Iniciando sessão de ${sessionName}...`);
-      await this.createSession(undefined, sessionName);
+      const sessionFolderPath = path.join(tokensFolder, sessionName);
+      const sessionFolderContent = await fs.readdir(sessionFolderPath);
+
+      if (sessionFolderContent.length > 0) {
+        logger.info(`Iniciando sessão de ${sessionName}...`);
+        await this.createSession(sessionName);
+      } else {
+        logger.info(`O diretório da sessão ${sessionName} está vazio. A sessão não será iniciada.`);
+      }
     }
   }
 }
