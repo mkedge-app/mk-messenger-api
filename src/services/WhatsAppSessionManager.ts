@@ -10,7 +10,11 @@ interface SocketMap {
 class WhatsAppSessionManager {
   private socks: SocketMap = {};
 
-  public async createSession(socket: WebSocket, name: string): Promise<void> {
+  public async createSession(socket: WebSocket, name: string | undefined): Promise<void> {
+    if (name === undefined) {
+      throw new Error("O nome da sessão é obrigatório");
+    }
+
     // Carregar as informações de autenticação do arquivo
     const { state, saveCreds } = await useMultiFileAuthState(`tokens/${name}`);
 
@@ -40,7 +44,7 @@ class WhatsAppSessionManager {
     });
 
     // Adicionar o novo socket à lista de sockets ativos usando o nome como chave
-    this.socks[name] = sock;
+    this.socks[name as string] = sock;
   }
 
   public getActiveSocks(): SocketMap {
