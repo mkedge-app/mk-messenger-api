@@ -115,6 +115,7 @@ class WhatsAppSessionManager {
   }
 
   public async initSessions(): Promise<void> {
+    logger.info('Restaurando sessões existentes...');
     const tokensFolder = path.resolve(__dirname, '..', '..', 'tokens');
     const folderNames = await fs.readdir(tokensFolder);
 
@@ -130,6 +131,7 @@ class WhatsAppSessionManager {
         logger.info(`O diretório da sessão ${sessionName} está vazio. A sessão não será iniciada.`);
       }
     }
+    logger.info('Restaurando sessões finalizou');
   }
 }
 
