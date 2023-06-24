@@ -34,6 +34,8 @@ class WebSocketServer {
           if (tenantId) {
             // Lidar com a conexão autenticada
             this.handleAuthenticatedConnection(ws, tenantId);
+          } else {
+            this.handleMissingTenantId(ws);
           }
         } else {
           // Lidar com a conexão não autorizada
@@ -61,6 +63,13 @@ class WebSocketServer {
       }
       // Lógica para manipular o fechamento da conexão
     });
+  }
+
+  private handleMissingTenantId(ws: WebSocket): void {
+    // Enviar mensagem de erro para o cliente
+    this.sendErrorMessage(ws, 'ID do tenant não fornecido');
+    // Fechar a conexão
+    ws.close();
   }
 
   private handleUnauthorizedConnection(ws: WebSocket): void {
@@ -94,17 +103,22 @@ class WebSocketServer {
   }
 
   private sendQrCodeToClient(data: QRCodeData): void {
+    const { name, qrcode } = data;
     const qrCodeResponse = {
       success: true,
       message: 'QR code gerado com sucesso',
       data: {
-        qrCode: data.qrcode,
+        qrCode: qrcode,
       }
     };
 
-    // Enviar o QR code para o clientes que solicitou
-    const ws = this.activeConnections[data.name];
-    ws.send(JSON.stringify(qrCodeResponse));
+    // Enviar o QR code para o cliente que solicitou
+    const ws = this.activeConnections[name];
+    if (ws) {
+      ws.send(JSON.stringify(qrCodeResponse));
+    } else {
+      logger.error(`Cliente '${name}' não encontrado`);
+    }
   }
 }
 
