@@ -4,12 +4,13 @@ import { Subject } from 'rxjs';
 import AuthMiddleware from './middlewares/AuthMiddleware';
 import WhatsAppSessionManager from '../services/WhatsAppSessionManager';
 import logger from '../logger';
+import { QRCodeData } from '../types/WhatsAppApi';
 
 class WebSocketServer {
   private wss: WebSocket.Server;
   private activeConnections: WebSocket[] = [];
   private authMiddleware: AuthMiddleware;
-  private qrCodeSubject: Subject<string>;
+  private qrCodeSubject: Subject<QRCodeData>;
 
   constructor(server: WebSocket.Server) {
     this.wss = server;
@@ -87,19 +88,18 @@ class WebSocketServer {
   }
 
   private subscribeToQrCodeSubject(): void {
-    this.qrCodeSubject.subscribe((qrCode: string) => {
-      logger.info(qrCode)
+    this.qrCodeSubject.subscribe((data: QRCodeData) => {
       // Enviar o QR code para o cliente (WebSocket)
-      this.sendQrCodeToClients(qrCode);
+      this.sendQrCodeToClients(data);
     });
   }
 
-  private sendQrCodeToClients(qrCode: string): void {
+  private sendQrCodeToClients(data: QRCodeData): void {
     const qrCodeResponse = {
       success: true,
       message: 'QR code gerado com sucesso',
       data: {
-        qrCode: qrCode,
+        qrCode: data.qrcode,
       }
     };
 
