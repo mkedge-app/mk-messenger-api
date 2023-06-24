@@ -38,6 +38,9 @@ class WhatsAppSessionManager {
           logger.info('Conexão fechada devido a logout');
           const tokensFolderPath = this.resolveTokensFolderPath(name);
           this.deleteFolderRecursive(tokensFolderPath);
+
+          // Remover a conexão do SocketMap
+          delete this.socks[name];
         } else if (statusCode === DisconnectReason.connectionLost) {
           logger.info('Conexão perdida');
           // Lógica específica para tratamento de conexão perdida
