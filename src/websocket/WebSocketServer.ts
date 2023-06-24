@@ -36,8 +36,10 @@ class WebSocketServer {
     this.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
 
     try {
-      // Criar uma sessão de gerenciamento do WhatsApp para a conexão, passando o tenantId, se disponível
-      await WhatsAppSessionManager.createSession(ws, tenantId);
+      if (tenantId) {
+        // Criar uma sessão de gerenciamento do WhatsApp para a conexão, passando o tenantId, se disponível
+        await WhatsAppSessionManager.createSession(ws, tenantId);
+      }
     } catch (error: any) {
       this.sendErrorMessage(ws, error.message);
       ws.close();
