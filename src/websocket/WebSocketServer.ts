@@ -29,14 +29,19 @@ class WebSocketServer {
     });
   }
 
-  private handleAuthenticatedConnection(ws: WebSocket, tenantId?: string): void {
+  private async handleAuthenticatedConnection(ws: WebSocket, tenantId?: string): Promise<void> {
     // Adicionar a conexão ativa à lista de conexões
     this.activeConnections.push(ws);
     // Enviar mensagem de sucesso para o cliente
     this.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
 
-    // Criar uma sessão de gerenciamento do WhatsApp para a conexão, passando o tenantId, se disponível
-    WhatsAppSessionManager.createSession(ws, tenantId as string);
+    try {
+      // Criar uma sessão de gerenciamento do WhatsApp para a conexão, passando o tenantId, se disponível
+      await WhatsAppSessionManager.createSession(ws, tenantId);
+    } catch (error: any) {
+      this.sendErrorMessage(ws, error.message);
+      ws.close();
+    }
 
     ws.on('close', () => {
       console.log('Cliente desconectado');
@@ -48,14 +53,17 @@ class WebSocketServer {
 
   private handleUnauthorizedConnection(ws: WebSocket): void {
     // Enviar mensagem de erro para o cliente
-    ws.send('Token não fornecido ou inválido');
+    this.sendErrorMessage(ws, 'Token não fornecido ou inválido');
     // Fechar a conexão
     ws.close();
   }
 
-  private sendSuccessMessage(ws: WebSocket, message: string): void {
-    // Enviar mensagem de sucesso para o cliente
-    ws.send(message);
+  private sendSuccessMessage(ws: WebSocket, successMessage: string): void {
+    const successResponse = {
+      success: true,
+      message: successMessage,
+    };
+    ws.send(JSON.stringify(successResponse));
   }
 
   private removeConnection(ws: WebSocket): void {
@@ -64,6 +72,14 @@ class WebSocketServer {
     if (index > -1) {
       this.activeConnections.splice(index, 1);
     }
+  }
+
+  private sendErrorMessage(ws: WebSocket, errorMessage: string): void {
+    const errorResponse = {
+      success: false,
+      error: errorMessage,
+    };
+    ws.send(JSON.stringify(errorResponse));
   }
 }
 
