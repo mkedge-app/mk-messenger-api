@@ -2,6 +2,8 @@ import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeys
 import { Boom } from '@hapi/boom';
 import logger from '../logger';
 import WebSocket from 'ws';
+import fs from 'fs-extra';
+import path from 'path';
 
 interface SocketMap {
   [name: string]: any;
@@ -49,6 +51,21 @@ class WhatsAppSessionManager {
 
   public getActiveSocks(): SocketMap {
     return this.socks;
+  }
+
+  private resolveTokensFolderPath(name: string): string {
+    const tokensFolderPath = path.resolve(__dirname, '..', '..', 'tokens', name);
+    return tokensFolderPath;
+  }
+
+  private deleteFolderRecursive(folderPath: string): void {
+    fs.remove(folderPath)
+      .then(() => {
+        logger.info(`Pasta excluída com sucesso: ${folderPath}`);
+      })
+      .catch((error) => {
+        logger.error(`Erro ao excluir pasta: ${error}`);
+      });
   }
 }
 
