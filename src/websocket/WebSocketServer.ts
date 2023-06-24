@@ -1,21 +1,28 @@
 import WebSocket from 'ws';
 import { IncomingMessage } from 'http';
+import { Subject } from 'rxjs';
 import AuthMiddleware from './middlewares/AuthMiddleware';
 import WhatsAppSessionManager from '../services/WhatsAppSessionManager';
+import logger from '../logger';
 
 class WebSocketServer {
   private wss: WebSocket.Server;
   private activeConnections: WebSocket[] = [];
   private authMiddleware: AuthMiddleware;
+  private qrCodeSubject: Subject<string>;
 
   constructor(server: WebSocket.Server) {
     this.wss = server;
     this.authMiddleware = new AuthMiddleware();
+    this.qrCodeSubject = WhatsAppSessionManager.getQrCodeObservable();
     this.setupWebSocket();
+    this.subscribeToQrCodeSubject();
+    logger.info('WebSocketServer inicializado');
   }
 
   private setupWebSocket(): void {
     this.wss.on('connection', (ws: WebSocket, req: IncomingMessage): void => {
+      logger.info(`Pedido para inicializar sessão recebido`);
       // Middleware de autenticação
       this.authMiddleware.handleConnection(req, (authenticated: boolean, tenantId?: string) => {
         if (authenticated) {
@@ -29,20 +36,15 @@ class WebSocketServer {
     });
   }
 
-  private async handleAuthenticatedConnection(ws: WebSocket, tenantId?: string): Promise<void> {
+  private handleAuthenticatedConnection(ws: WebSocket, tenantId?: string): void {
     // Adicionar a conexão ativa à lista de conexões
     this.activeConnections.push(ws);
     // Enviar mensagem de sucesso para o cliente
     this.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
 
-    try {
-      if (tenantId) {
-        // Criar uma sessão de gerenciamento do WhatsApp para a conexão, passando o tenantId, se disponível
-        await WhatsAppSessionManager.createSession(ws, tenantId);
-      }
-    } catch (error: any) {
-      this.sendErrorMessage(ws, error.message);
-      ws.close();
+    if (tenantId) {
+      // Informar o WhatsAppSessionManager sobre a nova conexão em busca de QR code
+      WhatsAppSessionManager.createSession(tenantId);
     }
 
     ws.on('close', () => {
@@ -82,6 +84,30 @@ class WebSocketServer {
       error: errorMessage,
     };
     ws.send(JSON.stringify(errorResponse));
+  }
+
+  private subscribeToQrCodeSubject(): void {
+    this.qrCodeSubject.subscribe((qrCode: string) => {
+      logger.info(qrCode)
+      // Enviar o QR code para o cliente (WebSocket)
+      this.sendQrCodeToClients(qrCode);
+    });
+  }
+
+  private sendQrCodeToClients(qrCode: string): void {
+    const qrCodeResponse = {
+      success: true,
+      message: 'QR code gerado com sucesso',
+      data: {
+        qrCode: qrCode,
+      }
+    };
+
+    // Enviar o QR code para todos os clientes conectados
+    this.activeConnections.forEach((ws: WebSocket) => {
+
+      ws.send(JSON.stringify(qrCodeResponse));
+    });
   }
 }
 
