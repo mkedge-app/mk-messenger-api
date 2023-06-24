@@ -1,14 +1,18 @@
-import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys'
-import { Boom } from '@hapi/boom'
+import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
 import logger from '../logger';
 import WebSocket from 'ws';
 
-class WhatsAppSessionManager {
-  private socks: any[] = [];
+interface SocketMap {
+  [name: string]: any;
+}
 
-  public async createSession(socket: WebSocket) {
+class WhatsAppSessionManager {
+  private socks: SocketMap = {};
+
+  public async createSession(socket: WebSocket, name: string): Promise<void> {
     // Carregar as informações de autenticação do arquivo
-    const { state, saveCreds } = await useMultiFileAuthState('tokens/auth_info_baileys')
+    const { state, saveCreds } = await useMultiFileAuthState(`tokens/${name}`);
 
     // Criar um novo socket WhatsApp
     const sock = makeWASocket({ printQRInTerminal: true, auth: state });
@@ -16,12 +20,11 @@ class WhatsAppSessionManager {
     // Registrar um ouvinte para atualizações das credenciais
     sock.ev.on('creds.update', (res) => {
       saveCreds();
-    })
+    });
 
     // Registrar um ouvinte para atualizações de conexão
     sock.ev.on('connection.update', (update) => {
       const { connection, lastDisconnect, qr } = update;
-
 
       if (connection === 'close') {
         const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
@@ -29,18 +32,18 @@ class WhatsAppSessionManager {
 
         // Reconectar se não foi desconectado por logout
         if (shouldReconnect) {
-          this.createSession(socket);
+          this.createSession(socket, name);
         }
       } else if (connection === 'open') {
         logger.info('Conexão estabelecida');
       }
     });
 
-    // Adicionar o novo socket à lista de sockets ativos
-    this.socks.push(sock);
+    // Adicionar o novo socket à lista de sockets ativos usando o nome como chave
+    this.socks[name] = sock;
   }
 
-  public getActiveSocks() {
+  public getActiveSocks(): SocketMap {
     return this.socks;
   }
 }
