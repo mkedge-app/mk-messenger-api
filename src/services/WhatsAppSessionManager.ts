@@ -33,11 +33,13 @@ class WhatsAppSessionManager {
     logger.info(`Criando sessão para ${name}...`);
     const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: authState });
 
+    // Assinar evento 'creds.update' para salvar as credenciais
     logger.info(`Evento 'creds.update' foi assinado para o socket pertencente a ${name}`);
     socketWhatsApp.ev.on('creds.update', () => {
       saveCreds();
     });
 
+    // Assinar evento 'connection.update' para lidar com atualizações de conexão
     socketWhatsApp.ev.on('connection.update', (update) => {
       logger.info(`Evento 'connection.update' foi assinado para o socket pertencente a ${name}`);
       this.handleConnectionUpdate(name, update);
