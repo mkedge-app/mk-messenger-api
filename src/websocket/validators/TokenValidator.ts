@@ -14,6 +14,17 @@ class TokenValidator {
       return false;
     }
   }
+
+  public extractTenantId(token: string): string | undefined {
+    try {
+      const decodedToken = AuthUtils.verifyToken(token);
+      if (decodedToken && decodedToken.tenantId) {
+        return decodedToken.tenantId;
+      }
+    } catch (error) {
+      return undefined;
+    }
+  }
 }
 
 export default TokenValidator;
