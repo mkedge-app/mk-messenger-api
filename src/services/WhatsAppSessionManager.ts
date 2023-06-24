@@ -4,6 +4,7 @@ import logger from '../logger';
 import fs from 'fs-extra';
 import path from 'path';
 import { Subject } from 'rxjs';
+import { QRCodeData } from '../types/WhatsAppApi';
 
 interface SocketMap {
   [name: string]: any;
@@ -11,10 +12,10 @@ interface SocketMap {
 
 class WhatsAppSessionManager {
   private socks: SocketMap = {};
-  private qrCodeSubject: Subject<string>;
+  private qrCodeSubject: Subject<QRCodeData>;
 
   constructor() {
-    this.qrCodeSubject = new Subject<string>();
+    this.qrCodeSubject = new Subject<QRCodeData>();
     logger.info('WhatsAppSessionManager inicializado');
   }
 
@@ -57,7 +58,10 @@ class WhatsAppSessionManager {
 
     if (connection === undefined && 'qr' in update) {
       logger.info('QR code gerado');
-      this.qrCodeSubject.next(qr);
+      this.qrCodeSubject.next({
+        name,
+        qrcode: qr
+      });
       return;
     }
 
@@ -110,7 +114,7 @@ class WhatsAppSessionManager {
     return this.socks;
   }
 
-  public getQrCodeObservable(): Subject<string> {
+  public getQrCodeObservable(): Subject<QRCodeData> {
     return this.qrCodeSubject;
   }
 
