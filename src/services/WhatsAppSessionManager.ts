@@ -12,8 +12,8 @@ interface SocketMap {
 class WhatsAppSessionManager {
   private socks: SocketMap = {};
 
-  public async createSession(socket: WebSocket, name: string | undefined): Promise<void> {
-    if (name === undefined) {
+  public async createSession(socket: WebSocket | undefined, name: string | undefined): Promise<void> {
+    if (!name) {
       throw new Error("O nome da sessão é obrigatório");
     }
 
@@ -58,7 +58,13 @@ class WhatsAppSessionManager {
     });
 
     // Adicionar o novo socket à lista de sockets ativos usando o nome como chave
-    this.socks[name as string] = sock;
+    this.socks[name] = sock;
+
+    // Se um socket foi fornecido, realizar ações específicas
+    if (socket) {
+      // Enviar status para o usuário que solicitou
+      // ...
+    }
   }
 
   public getActiveSocks(): SocketMap {
@@ -78,6 +84,17 @@ class WhatsAppSessionManager {
       .catch((error) => {
         logger.error(`Erro ao excluir pasta: ${error}`);
       });
+  }
+
+  public async initSessions(): Promise<void> {
+    const tokensFolder = path.resolve(__dirname, '..', '..', 'tokens');
+    const folderNames = await fs.readdir(tokensFolder);
+
+    for (const folderName of folderNames) {
+      const sessionName = folderName;
+      logger.info(`Iniciando sessão de ${sessionName}...`);
+      await this.createSession(undefined, sessionName);
+    }
   }
 }
 
