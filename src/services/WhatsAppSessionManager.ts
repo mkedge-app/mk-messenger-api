@@ -31,17 +31,29 @@ class WhatsAppSessionManager {
     // Registrar um ouvinte para atualizações de conexão
     sock.ev.on('connection.update', (update) => {
       const { connection, lastDisconnect, qr } = update;
+      const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
 
       if (connection === 'close') {
-        const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
-        logger.info('Conexão fechada devido a:', lastDisconnect?.error, ', reconectando:', shouldReconnect);
-
-        // Reconectar se não foi desconectado por logout
-        if (shouldReconnect) {
+        if (statusCode === DisconnectReason.loggedOut) {
+          logger.info('Conexão fechada devido a logout');
+          const tokensFolderPath = this.resolveTokensFolderPath(name);
+          this.deleteFolderRecursive(tokensFolderPath);
+        } else if (statusCode === DisconnectReason.connectionLost) {
+          logger.info('Conexão perdida');
+          // Lógica específica para tratamento de conexão perdida
+        } else if (statusCode === DisconnectReason.timedOut) {
+          logger.info('Conexão expirada');
+          // Lógica específica para tratamento de tempo limite
+        } else if (statusCode === DisconnectReason.connectionClosed) {
+          logger.info('Conexão fechada');
+          // Lógica específica para tratamento de conexão fechada
+        } else {
+          logger.info('Conexão fechada com motivo desconhecido');
           this.createSession(socket, name);
         }
       } else if (connection === 'open') {
         logger.info('Conexão estabelecida');
+        // Lógica para tratamento de conexão estabelecida
       }
     });
 
