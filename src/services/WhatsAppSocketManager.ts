@@ -1,9 +1,16 @@
 import makeWASocket, { ConnectionState, DisconnectReason } from '@whiskeysockets/baileys';
+import { Subject } from 'rxjs';
 import logger from '../logger';
 import { Boom } from '@hapi/boom';
 
+interface ConnectionUpdateData {
+  name: string;
+  update: Partial<ConnectionState>;
+}
+
 class WhatsAppSocketManager {
   private sockets: { [name: string]: any } = {};
+  private connectionUpdateSubjects: { [name: string]: Subject<Partial<ConnectionState>> } = {};
 
   public createSocketWhatsApp(name: string, authState: any, saveCreds: () => void): void {
     logger.info(`Criando sessão para ${name}...`);
@@ -13,15 +20,23 @@ class WhatsAppSocketManager {
       saveCreds();
     });
 
-    logger.info(`Ouvindo o evento 'connection.update'para o WASocket de ${name}`);
-    socketWhatsApp.ev.on('connection.update', (update) => {
-      this.handleConnectionUpdate(name, update);
+    logger.info(`Ouvindo o evento 'connection.update' para o WASocket de ${name}`);
+    socketWhatsApp.ev.on('connection.update', (update: Partial<ConnectionState>) => {
+      this.handleConnectionUpdate({ name, update });
     });
 
     this.sockets[name] = socketWhatsApp;
   }
 
-  private handleConnectionUpdate(name: string, update: Partial<ConnectionState>): void {
+  public getConnectionUpdateObservable(name: string): Subject<Partial<ConnectionState>> {
+    if (!this.connectionUpdateSubjects[name]) {
+      this.connectionUpdateSubjects[name] = new Subject<Partial<ConnectionState>>();
+    }
+    return this.connectionUpdateSubjects[name];
+  }
+
+  private handleConnectionUpdate(data: ConnectionUpdateData): void {
+    const { name, update } = data;
     logger.info(`Atualização de conexão do socket de ${name} recebida`);
 
     const { connection, lastDisconnect, qr } = update;
@@ -57,6 +72,11 @@ class WhatsAppSocketManager {
     } else if (connection === 'open') {
       logger.info('Conexão estabelecida');
       // Lógica para lidar com a conexão estabelecida
+    }
+
+    // Emitir a atualização da conexão para o Observable correspondente
+    if (this.connectionUpdateSubjects[name]) {
+      this.connectionUpdateSubjects[name].next(update);
     }
   }
 }
