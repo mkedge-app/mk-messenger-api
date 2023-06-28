@@ -34,13 +34,6 @@ class WhatsAppSocketManager {
     });
   }
 
-  public getConnectionUpdateObservable(name: string): Subject<Partial<ConnectionState>> {
-    if (!this.connectionUpdateSubjects[name]) {
-      this.connectionUpdateSubjects[name] = new Subject<Partial<ConnectionState>>();
-    }
-    return this.connectionUpdateSubjects[name];
-  }
-
   private handleConnectionUpdate(data: ConnectionUpdateData): void {
     const { name, update } = data;
     logger.info(`Atualização de conexão do socket de ${name} recebida`);
@@ -55,7 +48,6 @@ class WhatsAppSocketManager {
     if (connection === undefined && 'qr' in update) {
       logger.info('QR code gerado');
       // Lógica para manipular o QR code
-      return;
     }
 
     if (connection === 'close') {
@@ -84,6 +76,13 @@ class WhatsAppSocketManager {
     if (this.connectionUpdateSubjects[name]) {
       this.connectionUpdateSubjects[name].next(update);
     }
+  }
+
+  public getConnectionUpdateObservable(name: string): Subject<Partial<ConnectionState>> {
+    if (!this.connectionUpdateSubjects[name]) {
+      this.connectionUpdateSubjects[name] = new Subject<Partial<ConnectionState>>();
+    }
+    return this.connectionUpdateSubjects[name];
   }
 }
 
