@@ -1,6 +1,6 @@
-import makeWASocket, { ConnectionState, DisconnectReason } from '@whiskeysockets/baileys';
+import makeWASocket, { ConnectionState, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
-import logger from '../logger';
+import logger from '../../logger';
 import { Boom } from '@hapi/boom';
 
 interface ConnectionUpdateData {
@@ -12,20 +12,26 @@ class WhatsAppSocketManager {
   private sockets: { [name: string]: any } = {};
   private connectionUpdateSubjects: { [name: string]: Subject<Partial<ConnectionState>> } = {};
 
-  public createSocketWhatsApp(name: string, authState: any, saveCreds: () => void): void {
-    logger.info(`Criando sessão para ${name}...`);
-    const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: authState });
+  public createSocketWhatsApp(name: string): Promise<void> {
+    return new Promise<void>(async (resolve) => {
+      logger.info(`Criando sessão para ${name}...`);
+      const { state, saveCreds } = await useMultiFileAuthState(`tokens/${name}`);
 
-    socketWhatsApp.ev.on('creds.update', () => {
-      saveCreds();
+      const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: state });
+
+      socketWhatsApp.ev.on('creds.update', () => {
+        saveCreds();
+      });
+
+      logger.info(`Ouvindo o evento 'connection.update' para o WASocket de ${name}`);
+      socketWhatsApp.ev.on('connection.update', (update: Partial<ConnectionState>) => {
+        this.handleConnectionUpdate({ name, update });
+      });
+
+      this.sockets[name] = socketWhatsApp;
+
+      resolve();
     });
-
-    logger.info(`Ouvindo o evento 'connection.update' para o WASocket de ${name}`);
-    socketWhatsApp.ev.on('connection.update', (update: Partial<ConnectionState>) => {
-      this.handleConnectionUpdate({ name, update });
-    });
-
-    this.sockets[name] = socketWhatsApp;
   }
 
   public getConnectionUpdateObservable(name: string): Subject<Partial<ConnectionState>> {
