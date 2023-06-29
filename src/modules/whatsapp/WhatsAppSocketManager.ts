@@ -1,5 +1,6 @@
 import makeWASocket, { ConnectionState, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
+import fs from 'fs-extra';
 import path from 'path';
 import logger from '../../logger';
 import { Boom } from '@hapi/boom';
@@ -41,7 +42,7 @@ class WhatsAppSocketManager {
     });
   }
 
-  private handleConnectionUpdate(data: ConnectionUpdateData): void {
+  private async handleConnectionUpdate(data: ConnectionUpdateData): Promise<void> {
     const { name, update } = data;
     logger.info(`Atualização de conexão do socket de ${name} recebida`);
 
@@ -55,7 +56,7 @@ class WhatsAppSocketManager {
         this.handleLoggedOut(name);
         logger.info('Conexão fechada devido a logout');
       } else if (!Object.values(DisconnectReason).includes(statusCode)) {
-        this.createSocketWhatsApp(name); // Reconectar...
+        await this.createSocketWhatsApp(name); // Reconectar...
       }
 
     } else if (connection === 'open') {
@@ -84,6 +85,26 @@ class WhatsAppSocketManager {
   private resolveTokensFolderPath(name: string): string {
     const tokensFolderPath = path.resolve(__dirname, '..', '..', '..', 'tokens', name);
     return tokensFolderPath;
+  }
+
+  public async restoreSessions(): Promise<void> {
+    logger.info('Restaurando sessões existentes...');
+    const tokensFolder = path.resolve(__dirname, '..', '..', 'tokens');
+    const folderNames = await fs.readdir(tokensFolder);
+
+    for (const folderName of folderNames) {
+      const name = folderName;
+      const sessionFolderPath = path.join(tokensFolder, name);
+      const sessionFolderContent = await fs.readdir(sessionFolderPath);
+
+      if (sessionFolderContent.length > 0) {
+        logger.info(`Iniciando sessão de ${name}...`);
+        await this.createSocketWhatsApp(name); // Reconectar...
+      } else {
+        logger.info(`O diretório da sessão ${name} está vazio. A sessão não será iniciada.`);
+      }
+    }
+    logger.info('Restaurando sessões finalizou');
   }
 }
 
