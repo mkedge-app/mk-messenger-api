@@ -1,7 +1,9 @@
 import makeWASocket, { ConnectionState, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
+import path from 'path';
 import logger from '../../logger';
 import { Boom } from '@hapi/boom';
+import FileUtils from '../../services/FileUtils';
 
 interface ConnectionUpdateData {
   name: string;
@@ -11,6 +13,11 @@ interface ConnectionUpdateData {
 class WhatsAppSocketManager {
   private sockets: { [name: string]: any } = {};
   private connectionUpdateSubjects: { [name: string]: Subject<Partial<ConnectionState>> } = {};
+  private fileUtils: FileUtils;
+
+  constructor() {
+    this.fileUtils = new FileUtils();
+  }
 
   public createSocketWhatsApp(name: string): Promise<void> {
     return new Promise<void>(async (resolve) => {
@@ -41,32 +48,17 @@ class WhatsAppSocketManager {
     const { connection, lastDisconnect, qr } = update;
     const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
 
-    if (connection === 'connecting') {
-      logger.info('Status de conexão: Conectando...');
-    }
-
-    if (connection === undefined && 'qr' in update) {
-      logger.info('QR code gerado');
-      // Lógica para manipular o QR code
-    }
-
     if (connection === 'close') {
+      delete this.sockets[name];
+
       if (statusCode === DisconnectReason.loggedOut) {
+        this.handleLoggedOut(name);
         logger.info('Conexão fechada devido a logout');
-        // Lógica para lidar com o logout
-      } else if (statusCode === DisconnectReason.connectionLost) {
-        logger.info('Conexão perdida');
-        // Lógica para lidar com a perda de conexão
-      } else if (statusCode === DisconnectReason.timedOut) {
-        logger.info('Conexão expirada');
-        // Lógica para lidar com o tempo limite de conexão
-      } else if (statusCode === DisconnectReason.connectionClosed) {
-        logger.info('Conexão fechada');
-        // Lógica para lidar com o fechamento da conexão
-      } else {
-        logger.info('Conexão fechada com motivo desconhecido');
-        // Lógica para lidar com o fechamento da conexão com motivo desconhecido
+      } else if (!Object.values(DisconnectReason).includes(statusCode)) {
+        // O valor de statusCode é diferente de qualquer valor da enumeração DisconnectReason
+        // Tentar reconexão
       }
+
     } else if (connection === 'open') {
       logger.info('Conexão estabelecida');
       // Lógica para lidar com a conexão estabelecida
@@ -83,6 +75,16 @@ class WhatsAppSocketManager {
       this.connectionUpdateSubjects[name] = new Subject<Partial<ConnectionState>>();
     }
     return this.connectionUpdateSubjects[name];
+  }
+
+  private handleLoggedOut(name: string): void {
+    const tokensFolderPath = this.resolveTokensFolderPath(name);
+    this.fileUtils.deleteFolderRecursive(tokensFolderPath);
+  }
+
+  private resolveTokensFolderPath(name: string): string {
+    const tokensFolderPath = path.resolve(__dirname, '..', '..', 'tokens', name);
+    return tokensFolderPath;
   }
 }
 
