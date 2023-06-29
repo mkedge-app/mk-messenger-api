@@ -45,7 +45,7 @@ class WhatsAppSocketManager {
     const { name, update } = data;
     logger.info(`Atualização de conexão do socket de ${name} recebida`);
 
-    const { connection, lastDisconnect, qr } = update;
+    const { connection, lastDisconnect } = update;
     const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
 
     if (connection === 'close') {
@@ -55,7 +55,7 @@ class WhatsAppSocketManager {
         this.handleLoggedOut(name);
         logger.info('Conexão fechada devido a logout');
       } else if (!Object.values(DisconnectReason).includes(statusCode)) {
-        this.createSocketWhatsApp(name); // Fazer reconexão
+        this.createSocketWhatsApp(name); // Reconectar...
       }
 
     } else if (connection === 'open') {
