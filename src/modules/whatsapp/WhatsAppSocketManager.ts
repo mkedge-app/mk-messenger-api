@@ -83,7 +83,7 @@ class WhatsAppSocketManager {
   }
 
   private resolveTokensFolderPath(name: string): string {
-    const tokensFolderPath = path.resolve(__dirname, '..', '..', 'tokens', name);
+    const tokensFolderPath = path.resolve(__dirname, '..', '..', '..', 'tokens', name);
     return tokensFolderPath;
   }
 }
