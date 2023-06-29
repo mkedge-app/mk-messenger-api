@@ -87,7 +87,7 @@ class WhatsAppSocketManager {
     return tokensFolderPath;
   }
 
-  public async restoreSessions(): Promise<void> {
+  public async initializeExistingSessions(): Promise<void> {
     logger.info('Restaurando sessões existentes...');
     const tokensFolder = path.resolve(__dirname, '..', '..', 'tokens');
     const folderNames = await fs.readdir(tokensFolder);
