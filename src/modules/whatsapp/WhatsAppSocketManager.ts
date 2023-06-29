@@ -20,6 +20,11 @@ class WhatsAppSocketManager {
     this.fileUtils = new FileUtils();
   }
 
+  /**
+   * Cria uma nova sessão do WhatsApp.
+   * @param name O nome da sessão.
+   * @returns Uma Promise que é resolvida quando a sessão é criada.
+   */
   public createSocketWhatsApp(name: string): Promise<void> {
     return new Promise<void>(async (resolve) => {
       logger.info(`Criando sessão para ${name}...`);
@@ -42,6 +47,11 @@ class WhatsAppSocketManager {
     });
   }
 
+  /**
+   * Manipula a atualização de conexão do socket do WhatsApp.
+   * @param data Os dados de atualização de conexão.
+   * @returns Uma Promise que é resolvida quando a atualização é manipulada.
+   */
   private async handleConnectionUpdate(data: ConnectionUpdateData): Promise<void> {
     const { name, update } = data;
     logger.info(`Atualização de conexão do socket de ${name} recebida`);
@@ -70,6 +80,11 @@ class WhatsAppSocketManager {
     }
   }
 
+  /**
+   * Obtém o Observable de atualização de conexão para um nome de sessão específico.
+   * @param name O nome da sessão.
+   * @returns O Observable de atualização de conexão.
+   */
   public getConnectionUpdateObservable(name: string): Subject<Partial<ConnectionState>> {
     if (!this.connectionUpdateSubjects[name]) {
       this.connectionUpdateSubjects[name] = new Subject<Partial<ConnectionState>>();
@@ -77,16 +92,30 @@ class WhatsAppSocketManager {
     return this.connectionUpdateSubjects[name];
   }
 
+  /**
+   * Manipula a ação de logout de uma sessão do WhatsApp.
+   * @param name O nome da sessão.
+   */
   private handleLoggedOut(name: string): void {
     const tokensFolderPath = this.resolveTokensFolderPath(name);
     this.fileUtils.deleteFolderRecursive(tokensFolderPath);
   }
 
+  /**
+   * Resolve o caminho da pasta de tokens para uma sessão específica.
+   * @param name O nome da sessão.
+   * @returns O caminho completo da pasta de tokens.
+   */
   private resolveTokensFolderPath(name: string): string {
     const tokensFolderPath = path.resolve(__dirname, '..', '..', '..', 'tokens', name);
     return tokensFolderPath;
   }
 
+  /**
+   * Inicializa as sessões existentes.
+   * Verifica os tokens salvos e cria os sockets correspondentes para as sessões não vazias.
+   * @returns Uma Promise que é resolvida quando as sessões são inicializadas.
+   */
   public async initializeExistingSessions(): Promise<void> {
     logger.info('Restaurando sessões existentes...');
     const tokensFolder = path.resolve(__dirname, '..', '..', 'tokens');
