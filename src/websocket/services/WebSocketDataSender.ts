@@ -34,7 +34,7 @@ class WebSocketDataSender {
         // Dados de conexão estabelecida
         const connectionResponse = {
           success: true,
-          message: 'Conexão estabelecida com sucesso',
+          message: 'Sessão iniciada com sucesso',
           data: {
             session: data,
           },
