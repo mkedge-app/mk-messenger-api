@@ -96,6 +96,8 @@ class WebSocketServer {
     this.connectionEstablishedSubject.subscribe((data: Session) => {
       // Enviar dados para o cliente (WebSocket)
       this.webSocketDataSender.sendDataToClient(data);
+      const ws = this.activeConnections[data.name];
+      ws.close();
     });
   }
 }
