@@ -2,6 +2,8 @@ import WhatsAppSocketManager from './WhatsAppSocketManager';
 import { Boom } from '@hapi/boom';
 import logger from '../../logger';
 import { DisconnectReason } from '@whiskeysockets/baileys';
+import { Subject } from 'rxjs';
+import { QRCodeData } from '../../types/WhatsAppApi';
 
 interface Session {
   name: string;
@@ -11,9 +13,11 @@ interface Session {
 class WhatsAppSessionManager {
   private socketManager: WhatsAppSocketManager;
   private sessions: Session[];
+  private qrCodeSubject: Subject<QRCodeData>;
 
   constructor() {
     this.socketManager = new WhatsAppSocketManager();
+    this.qrCodeSubject = new Subject<QRCodeData>();
     this.sessions = [];
   }
 
@@ -57,6 +61,9 @@ class WhatsAppSessionManager {
       else if (connection === 'open') {
         // Adiciona a sessão ao array de sessões como ativa
         this.sessions.push({ name, active: true });
+
+      } else if ('qr' in update && update.qr) {
+        this.qrCodeSubject.next({ name, qrcode: update.qr});
       }
     });
   }
@@ -78,6 +85,10 @@ class WhatsAppSessionManager {
       return session;
     });
   }
+
+  public getQrCodeObservable(): Subject<QRCodeData> {
+    return this.qrCodeSubject;
+  }
 }
 
-export default WhatsAppSessionManager;
+export default new WhatsAppSessionManager();
