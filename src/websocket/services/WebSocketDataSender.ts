@@ -45,6 +45,22 @@ class WebSocketDataSender {
       ws.send(message);
     }
   }
+
+  public sendSuccessMessage(ws: WebSocket, message: string): void {
+    const successResponse = {
+      success: true,
+      message: message,
+    };
+    ws.send(JSON.stringify(successResponse));
+  }
+
+  public sendErrorMessage(ws: WebSocket, errorMessage: string): void {
+    const errorResponse = {
+      success: false,
+      error: errorMessage,
+    };
+    ws.send(JSON.stringify(errorResponse));
+  }
 }
 
 export default WebSocketDataSender;
