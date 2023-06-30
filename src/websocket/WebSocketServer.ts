@@ -2,10 +2,10 @@ import WebSocket from 'ws';
 import { IncomingMessage } from 'http';
 import { Subject } from 'rxjs';
 import AuthMiddleware from './middlewares/AuthMiddleware';
-import WhatsAppSessionManager from '../modules/whatsapp/WhatsAppSessionManager';
+import WhatsAppSessionManager, { Session } from '../modules/whatsapp/WhatsAppSessionManager';
 import logger from '../logger';
 import { QRCodeData } from '../types/WhatsAppApi';
-import QRCodeSubscriber from './services/QRCodeSubscriber';
+import WebSocketDataSender from './services/WebSocketDataSender';
 
 interface SocketMap {
   [name: string]: WebSocket;
@@ -16,15 +16,18 @@ class WebSocketServer {
   private activeConnections: SocketMap = {};
   private authMiddleware: AuthMiddleware;
   private qrCodeSubject: Subject<QRCodeData>;
-  private qrCodeSubscriber: QRCodeSubscriber;
+  private connectionEstablishedSubject: Subject<Session>;
+  private webSocketDataSender: WebSocketDataSender;
 
   constructor(server: WebSocket.Server) {
     this.wss = server;
     this.authMiddleware = new AuthMiddleware();
     this.qrCodeSubject = WhatsAppSessionManager.getQrCodeObservable();
-    this.qrCodeSubscriber = new QRCodeSubscriber(this.activeConnections);
+    this.connectionEstablishedSubject = WhatsAppSessionManager.getConnectionEstablishedObservable();
+    this.webSocketDataSender = new WebSocketDataSender(this.activeConnections);
     this.setupWebSocket();
     this.subscribeToQrCodeSubject();
+    this.subscribeToConnectionEstablishedSubject();
     logger.info('WebSocketServer inicializado');
   }
 
@@ -101,7 +104,14 @@ class WebSocketServer {
   private subscribeToQrCodeSubject(): void {
     this.qrCodeSubject.subscribe((data: QRCodeData) => {
       // Enviar o QR code para o cliente (WebSocket)
-      this.qrCodeSubscriber.sendQrCodeToClient(data);
+      this.webSocketDataSender.sendDataToClient(data);
+    });
+  }
+
+  private subscribeToConnectionEstablishedSubject(): void {
+    this.connectionEstablishedSubject.subscribe((data: Session) => {
+      // Enviar dados para o cliente (WebSocket)
+      this.webSocketDataSender.sendDataToClient(data);
     });
   }
 }
