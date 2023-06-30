@@ -56,7 +56,7 @@ class WebSocketServer {
     this.activeConnections[tenantId] = ws;
 
     // Enviar mensagem de sucesso para o cliente
-    this.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
+    this.webSocketDataSender.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
 
     // Informar o WhatsAppSessionManager sobre a nova conexão em busca de QR code
     WhatsAppSessionManager.initializeSession(tenantId);
@@ -73,32 +73,16 @@ class WebSocketServer {
 
   private handleMissingTenantId(ws: WebSocket): void {
     // Enviar mensagem de erro para o cliente
-    this.sendErrorMessage(ws, 'ID do tenant não fornecido');
+    this.webSocketDataSender.sendErrorMessage(ws, 'ID do tenant não fornecido');
     // Fechar a conexão
     ws.close();
   }
 
   private handleUnauthorizedConnection(ws: WebSocket): void {
     // Enviar mensagem de erro para o cliente
-    this.sendErrorMessage(ws, 'Token não fornecido ou inválido');
+    this.webSocketDataSender.sendErrorMessage(ws, 'Token não fornecido ou inválido');
     // Fechar a conexão
     ws.close();
-  }
-
-  private sendSuccessMessage(ws: WebSocket, successMessage: string): void {
-    const successResponse = {
-      success: true,
-      message: successMessage,
-    };
-    ws.send(JSON.stringify(successResponse));
-  }
-
-  private sendErrorMessage(ws: WebSocket, errorMessage: string): void {
-    const errorResponse = {
-      success: false,
-      error: errorMessage,
-    };
-    ws.send(JSON.stringify(errorResponse));
   }
 
   private subscribeToQrCodeSubject(): void {
