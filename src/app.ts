@@ -4,7 +4,7 @@ import http from 'http';
 import WebSocket from 'ws';
 import routes from './routes';
 import WebSocketServer from './modules/websocket/WebSocketServer';
-import WhatsAppSessionManager from './services/WhatsAppSessionManager';
+import WhatsAppSessionManager from './modules/whatsapp/WhatsAppSessionManager';
 
 import './database';
 
@@ -38,7 +38,7 @@ class App {
   }
 
   private async initSessions(): Promise<void> {
-    await WhatsAppSessionManager.initSessions();
+    await WhatsAppSessionManager.restoreSessions();
   }
 }
 
