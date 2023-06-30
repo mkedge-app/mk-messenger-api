@@ -67,7 +67,8 @@ class WhatsAppSocketManager {
       if (statusCode === DisconnectReason.loggedOut) {
         this.handleLoggedOut(name);
         logger.info('Conexão fechada devido a logout');
-      } else if (!Object.values(DisconnectReason).includes(statusCode)) {
+
+      } else if (statusCode === DisconnectReason.restartRequired) {
         await this.createSocketWhatsApp(name); // Reconectar...
       }
 
