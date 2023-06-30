@@ -15,9 +15,11 @@ class WhatsAppSocketManager {
   private sockets: { [name: string]: any } = {};
   private connectionUpdateSubjects: { [name: string]: Subject<Partial<ConnectionState>> } = {};
   private fileUtils: FileUtils;
+  private readonly tokensFolder: string;
 
   constructor() {
     this.fileUtils = new FileUtils();
+    this.tokensFolder = path.resolve(__dirname, '..', '..', '..', 'tokens');
   }
 
   /**
@@ -107,7 +109,7 @@ class WhatsAppSocketManager {
    * @returns O caminho completo da pasta de tokens.
    */
   private resolveTokensFolderPath(name: string): string {
-    const tokensFolderPath = path.resolve(__dirname, '..', '..', '..', 'tokens', name);
+    const tokensFolderPath = path.resolve(this.tokensFolder, name);
     return tokensFolderPath;
   }
 
@@ -118,12 +120,11 @@ class WhatsAppSocketManager {
    */
   public async initializeExistingSessions(): Promise<void> {
     logger.info('Restaurando sessões existentes...');
-    const tokensFolder = path.resolve(__dirname, '..', '..', 'tokens');
-    const folderNames = await fs.readdir(tokensFolder);
+    const folderNames = await fs.readdir(this.tokensFolder);
 
     for (const folderName of folderNames) {
       const name = folderName;
-      const sessionFolderPath = path.join(tokensFolder, name);
+      const sessionFolderPath = path.join(this.tokensFolder, name);
       const sessionFolderContent = await fs.readdir(sessionFolderPath);
 
       if (sessionFolderContent.length > 0) {
@@ -134,6 +135,11 @@ class WhatsAppSocketManager {
       }
     }
     logger.info('Restaurando sessões finalizou');
+  }
+
+  public async getExistingSessionNames(): Promise<string[]> {
+    const folderNames = await fs.readdir(this.tokensFolder);
+    return folderNames;
   }
 }
 
