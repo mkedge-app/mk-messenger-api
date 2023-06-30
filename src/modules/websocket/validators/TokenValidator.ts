@@ -1,4 +1,4 @@
-import AuthUtils from "../../services/AuthUtils";
+import AuthUtils from "../../../services/AuthUtils";
 
 class TokenValidator {
   public validateToken(token: string): boolean {

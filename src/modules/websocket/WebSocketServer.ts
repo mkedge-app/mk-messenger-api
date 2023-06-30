@@ -2,10 +2,10 @@ import WebSocket from 'ws';
 import { IncomingMessage } from 'http';
 import { Subject } from 'rxjs';
 import AuthMiddleware from './middlewares/AuthMiddleware';
-import WhatsAppSessionManager, { Session } from '../modules/whatsapp/WhatsAppSessionManager';
-import logger from '../logger';
-import { QRCodeData } from '../types/WhatsAppApi';
-import WebSocketDataSender from './services/WebSocketDataSender';
+import WhatsAppSessionManager, { Session } from '../whatsapp/WhatsAppSessionManager';
+import logger from '../../logger';
+import { QRCodeData } from '../../types/WhatsAppApi';
+import WebSocketDataSender from './WebSocketDataSender';
 
 interface SocketMap {
   [name: string]: WebSocket;

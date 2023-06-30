@@ -3,7 +3,7 @@ import cors from 'cors';
 import http from 'http';
 import WebSocket from 'ws';
 import routes from './routes';
-import WebSocketServer from './websocket/WebSocketServer';
+import WebSocketServer from './modules/websocket/WebSocketServer';
 import WhatsAppSessionManager from './services/WhatsAppSessionManager';
 
 import './database';

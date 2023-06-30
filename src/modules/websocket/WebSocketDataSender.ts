@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { QRCodeData } from '../../types/WhatsAppApi';
-import { Session } from '../../modules/whatsapp/WhatsAppSessionManager';
+import { Session } from '../whatsapp/WhatsAppSessionManager';
 
 interface SocketMap {
   [name: string]: WebSocket;
