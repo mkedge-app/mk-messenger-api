@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import { IncomingMessage } from 'http';
 import { Subject } from 'rxjs';
 import AuthMiddleware from './middlewares/AuthMiddleware';
-import WhatsAppSessionManager from '../services/WhatsAppSessionManager';
+import WhatsAppSessionManager from '../modules/whatsapp/WhatsAppSessionManager';
 import logger from '../logger';
 import { QRCodeData } from '../types/WhatsAppApi';
 import QRCodeSubscriber from './services/QRCodeSubscriber';
@@ -56,7 +56,7 @@ class WebSocketServer {
     this.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
 
     // Informar o WhatsAppSessionManager sobre a nova conexão em busca de QR code
-    WhatsAppSessionManager.createSession(tenantId);
+    WhatsAppSessionManager.initializeSession(tenantId);
 
     ws.on('close', () => {
       console.log('Cliente desconectado');
