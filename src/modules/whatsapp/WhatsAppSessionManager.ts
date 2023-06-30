@@ -5,7 +5,7 @@ import { DisconnectReason } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
 import { QRCodeData } from '../../types/WhatsAppApi';
 
-interface Session {
+export interface Session {
   name: string;
   active: boolean;
 }
@@ -14,10 +14,12 @@ class WhatsAppSessionManager {
   private socketManager: WhatsAppSocketManager;
   private sessions: Session[];
   private qrCodeSubject: Subject<QRCodeData>;
+  private connectionEstablishedSubject: Subject<Session>;
 
   constructor() {
     this.socketManager = new WhatsAppSocketManager();
     this.qrCodeSubject = new Subject<QRCodeData>();
+    this.connectionEstablishedSubject = new Subject<Session>();
     this.sessions = [];
   }
 
@@ -59,15 +61,20 @@ class WhatsAppSessionManager {
       }
       // Verifica se a conexão foi aberta
       else if (connection === 'open') {
+        const session = { name, active: true };
         // Adiciona a sessão ao array de sessões como ativa
-        this.sessions.push({ name, active: true });
+        this.sessions.push(session);
 
-      } else if ('qr' in update && update.qr) {
-        this.qrCodeSubject.next({ name, qrcode: update.qr});
+        // Notifica que a conexão foi estabelecida com sucesso
+        this.connectionEstablishedSubject.next(session);
+      }
+      // Verifica se há um QR Code disponível na atualização
+      else if ('qr' in update && update.qr) {
+        // Emite o QR Code para os assinantes interessados
+        this.qrCodeSubject.next({ name, qrcode: update.qr });
       }
     });
   }
-
 
   public async restoreSessions(): Promise<void> {
     const sessionNames = await this.socketManager.getExistingSessionNames();
@@ -88,6 +95,10 @@ class WhatsAppSessionManager {
 
   public getQrCodeObservable(): Subject<QRCodeData> {
     return this.qrCodeSubject;
+  }
+
+  public getConnectionEstablishedObservable(): Subject<Session> {
+    return this.connectionEstablishedSubject;
   }
 }
 
