@@ -77,7 +77,10 @@ class WhatsAppSessionManager {
   }
 
   public async restoreSessions(): Promise<void> {
-      await this.socketManager.initializeExistingSessions();
+    const sessionNames = await this.socketManager.getExistingSessionNames();
+    for (const name of sessionNames) {
+      await this.initializeSession(name);
+    }
   }
 
   private updateSessionState(name: string, active: boolean): void {
