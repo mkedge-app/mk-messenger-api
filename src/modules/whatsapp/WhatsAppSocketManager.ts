@@ -114,30 +114,6 @@ class WhatsAppSocketManager {
     return tokensFolderPath;
   }
 
-  /**
-   * Inicializa as sessões existentes.
-   * Verifica os tokens salvos e cria os sockets correspondentes para as sessões não vazias.
-   * @returns Uma Promise que é resolvida quando as sessões são inicializadas.
-   */
-  public async initializeExistingSessions(): Promise<void> {
-    logger.info('Restaurando sessões existentes...');
-    const folderNames = await fs.readdir(this.tokensFolder);
-
-    for (const folderName of folderNames) {
-      const name = folderName;
-      const sessionFolderPath = path.join(this.tokensFolder, name);
-      const sessionFolderContent = await fs.readdir(sessionFolderPath);
-
-      if (sessionFolderContent.length > 0) {
-        logger.info(`Iniciando sessão de ${name}...`);
-        await this.createSocketWhatsApp(name); // Reconectar...
-      } else {
-        logger.info(`O diretório da sessão ${name} está vazio. A sessão não será iniciada.`);
-      }
-    }
-    logger.info('Restaurando sessões finalizou');
-  }
-
   public async getExistingSessionNames(): Promise<string[]> {
     const folderNames = await fs.readdir(this.tokensFolder);
     return folderNames;
