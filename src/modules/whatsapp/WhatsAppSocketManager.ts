@@ -6,13 +6,15 @@ import logger from '../../logger';
 import { Boom } from '@hapi/boom';
 import FileUtils from '../../services/FileUtils';
 
+type WASocket = ReturnType<typeof makeWASocket> | undefined;
+
 interface ConnectionUpdateData {
   name: string;
   update: Partial<ConnectionState>;
 }
 
 class WhatsAppSocketManager {
-  private sockets: { [name: string]: any } = {};
+  private sockets: Map<string, WASocket> = new Map();
   private connectionUpdateSubjects: { [name: string]: Subject<Partial<ConnectionState>> } = {};
   private fileUtils: FileUtils;
   private readonly tokensFolder: string;
@@ -43,7 +45,7 @@ class WhatsAppSocketManager {
         this.handleConnectionUpdate({ name, update });
       });
 
-      this.sockets[name] = socketWhatsApp;
+      this.sockets.set(name, socketWhatsApp);
 
       resolve();
     });
@@ -62,7 +64,7 @@ class WhatsAppSocketManager {
     const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
 
     if (connection === 'close') {
-      delete this.sockets[name];
+      this.sockets.delete(name);
 
       if (statusCode === DisconnectReason.loggedOut) {
         this.handleLoggedOut(name);
