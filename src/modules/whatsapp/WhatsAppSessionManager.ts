@@ -99,6 +99,10 @@ class WhatsAppSessionManager {
   public getConnectionEstablishedObservable(): Subject<Session> {
     return this.connectionEstablishedSubject;
   }
+
+  public getSessions(): Session[] {
+    return this.sessions;
+  }
 }
 
 export default new WhatsAppSessionManager();
