@@ -22,6 +22,7 @@ routes.delete("/tenants/:id", TenantController.delete);
 
 // Rotas de interação com o gerenciador de sessões WhatsApp
 routes.get("/whatsapp/sessions", WhatsAppSessionController.index);
+routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
 
 // Aplicar middleware de autenticação
 routes.use(tenantStatusCheck);
