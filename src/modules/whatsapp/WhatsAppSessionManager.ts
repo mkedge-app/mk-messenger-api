@@ -103,6 +103,10 @@ class WhatsAppSessionManager {
   public getSessions(): Session[] {
     return this.sessions;
   }
+
+  public getSessionByName(name: string): Session | undefined {
+    return this.sessions.find(session => session.name === name);
+  }
 }
 
 export default new WhatsAppSessionManager();
