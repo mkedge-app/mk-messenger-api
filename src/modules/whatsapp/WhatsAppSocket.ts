@@ -1,13 +1,11 @@
-import makeWASocket, { ConnectionState, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
-import logger from '../../logger';
-import { Boom } from '@hapi/boom';
+import makeWASocket, { ConnectionState, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
 import path from 'path';
 import FileUtils from '../../services/FileUtils';
 
-type WASocket = ReturnType<typeof makeWASocket>;
+export type WASocket = ReturnType<typeof makeWASocket>;
 type VoidResponse = void;
-type QrCodeSubjectResponse = { qrcode: string };
+export type QrCodeSubjectResponse = { qrcode: string };
 
 class WhatsAppSocket {
   private socket!: WASocket;
@@ -23,16 +21,11 @@ class WhatsAppSocket {
   private multideviceMismatchSubject = new Subject<VoidResponse>();
   private timedOutSubject = new Subject<VoidResponse>();
 
-  private fileUtils: FileUtils;
   private readonly tokensFolder = path.resolve(__dirname, '..', '..', '..', 'tokens');
 
-  constructor(private readonly name: string) {
-    this.fileUtils = new FileUtils();
-    this.tokensFolder = path.resolve(__dirname, '..', '..', '..', 'tokens');
-  }
+  constructor(private readonly name: string) { }
 
   public async create(): Promise<void> {
-    logger.info(`[WhatsAppSocket] Criando WASocket para ${this.name}...`);
     await this.initializeSocket();
     this.listenForConnectionUpdates();
   }
@@ -46,61 +39,17 @@ class WhatsAppSocket {
   }
 
   private listenForConnectionUpdates(): void {
-    logger.info(`[WhatsAppSocket] Ouvindo atualizações de conexão para o WASocket de ${this.name}`);
     this.socket.ev.on('connection.update', (update: Partial<ConnectionState>) => {
       this.handleConnectionUpdate(update);
     });
   }
 
   private handleConnectionUpdate(update: Partial<ConnectionState>): void {
-    logger.info(`[WhatsAppSocket] Atualização de conexão do socket de ${this.name} recebida...`);
-    const { connection, lastDisconnect } = update;
-
-    if (connection === 'close') {
-      logger.info(`[WhatsAppSocket] A conexão com o socket de ${this.name} foi fechada`);
-      const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode
-      this.handleConnectionClosed(statusCode);
-    } else if (connection === 'open') {
-      logger.info(`[WhatsAppSocket] A conexão com o socket de ${this.name} está aberta`);
-      this.connectionUpdateSubject.next(update);
-      this.connectionOpenedSubject.next();
-    } else if ('qr' in update && update.qr) {
+    if ('qr' in update && update.qr) {
       this.qrCodeSubject.next({ qrcode: update.qr });
     }
 
     this.connectionUpdateSubject.next(update);
-  }
-
-  private handleConnectionClosed(statusCode: number): void {
-
-    if (statusCode === DisconnectReason.loggedOut) {
-      this.handleLoggedOut();
-    }
-
-    const subjects: { [key: number]: Subject<void> } = {
-      [DisconnectReason.loggedOut]: this.connectionLoggedOutSubject,
-      [DisconnectReason.restartRequired]: this.connectionRestartRequiredSubject,
-      [DisconnectReason.badSession]: this.connectionBadSessionSubject,
-      [DisconnectReason.connectionClosed]: this.connectionClosedSubject,
-      [DisconnectReason.connectionReplaced]: this.connectionReplacedSubject,
-      [DisconnectReason.multideviceMismatch]: this.multideviceMismatchSubject,
-      [DisconnectReason.timedOut]: this.timedOutSubject,
-    };
-
-    const subject = subjects[statusCode];
-    if (subject) {
-      logger.info(`[WhatsAppSocket] Motivo: ${DisconnectReason[statusCode]}`);
-      subject.next();
-    }
-  }
-
-  public async logout(): Promise<void> {
-    await this.socket.logout();
-  }
-
-  private handleLoggedOut(): void {
-    const tokensFolderPath = path.resolve(this.tokensFolder, this.name);
-    this.fileUtils.deleteFolderRecursive(tokensFolderPath);
   }
 
   public getConnectionUpdateSubject(): Subject<Partial<ConnectionState>> {
