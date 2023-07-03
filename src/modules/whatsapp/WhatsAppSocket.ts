@@ -5,7 +5,7 @@ import { Subject } from 'rxjs';
 
 type WASocket = ReturnType<typeof makeWASocket> | undefined;
 type VoidResponse = void;
-type QrCodeSubjectResponse = { qrcode: string }
+type QrCodeSubjectResponse = { qrcode: string };
 
 class WhatsAppSocket {
   private socket: WASocket;
@@ -25,15 +25,21 @@ class WhatsAppSocket {
 
   public async create(): Promise<void> {
     logger.info(`[WhatsAppSocket] Criando WASocket para ${this.name}...`);
+
+    // Obtém o estado de autenticação e a função de salvar credenciais
     const { state, saveCreds } = await useMultiFileAuthState(`tokens/${this.name}`);
 
-    this.socket = makeWASocket({ printQRInTerminal: true, auth: state });
+    // Cria o socket WASocket com as opções fornecidas
+    this.socket = makeWASocket({ printQRInTerminal: true, auth: state, qrTimeout: 20000 });
 
+    // Listener para atualizações de credenciais
     this.socket.ev.on('creds.update', () => {
       saveCreds();
     });
 
     logger.info(`[WhatsAppSocket] Ouvindo atualizações de conexão para o WASocket de ${this.name}`);
+
+    // Listener para atualizações de conexão
     this.socket.ev.on('connection.update', (update: Partial<ConnectionState>) => {
       this.handleConnectionUpdate(update);
     });
@@ -99,8 +105,48 @@ class WhatsAppSocket {
     }
   }
 
-  public getConnectionUpdateObservable(): Subject<Partial<ConnectionState>> {
+  public getConnectionUpdateSubject(): Subject<Partial<ConnectionState>> {
     return this.connectionUpdateSubject;
+  }
+
+  public getQrCodeSubject(): Subject<QrCodeSubjectResponse> {
+    return this.qrCodeSubject;
+  }
+
+  public getConnectionOpenedSubject(): Subject<VoidResponse> {
+    return this.connectionOpenedSubject;
+  }
+
+  public getConnectionLoggedOutSubject(): Subject<VoidResponse> {
+    return this.connectionLoggedOutSubject;
+  }
+
+  public getConnectionRestartRequiredSubject(): Subject<VoidResponse> {
+    return this.connectionRestartRequiredSubject;
+  }
+
+  public getConnectionBadSessionSubject(): Subject<VoidResponse> {
+    return this.connectionBadSessionSubject;
+  }
+
+  public getConnectionClosedSubject(): Subject<VoidResponse> {
+    return this.connectionClosedSubject;
+  }
+
+  public getConnectionLostSubject(): Subject<VoidResponse> {
+    return this.connectionLostSubject;
+  }
+
+  public getConnectionReplacedSubject(): Subject<VoidResponse> {
+    return this.connectionReplacedSubject;
+  }
+
+  public getMultideviceMismatchSubject(): Subject<VoidResponse> {
+    return this.multideviceMismatchSubject;
+  }
+
+  public getTimedOutSubject(): Subject<VoidResponse> {
+    return this.timedOutSubject;
   }
 }
 
