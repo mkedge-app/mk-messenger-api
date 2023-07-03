@@ -15,7 +15,7 @@ interface ConnectionUpdateData {
 
 class WhatsAppSocketManager {
   private sockets: Map<string, WASocket> = new Map();
-  private connectionUpdateSubjects: { [name: string]: Subject<Partial<ConnectionState>> } = {};
+  private connectionUpdateSubjects: Map<string, Subject<Partial<ConnectionState>>> = new Map();
   private fileUtils: FileUtils;
   private readonly tokensFolder: string;
   private readonly loggerPrefix: string = '[WhatsAppSocketManager]';
@@ -74,9 +74,8 @@ class WhatsAppSocketManager {
     }
 
     // Emitir a atualização da conexão para o Observable correspondente
-    if (this.connectionUpdateSubjects[name]) {
-      this.connectionUpdateSubjects[name].next(update);
-    }
+    const subject = this.connectionUpdateSubjects.get(name);
+    if (subject) { subject.next(update) }
   }
 
   /**
@@ -133,10 +132,12 @@ class WhatsAppSocketManager {
    * @returns O Observable de atualização de conexão.
    */
   public getConnectionUpdateObservable(name: string): Subject<Partial<ConnectionState>> {
-    if (!this.connectionUpdateSubjects[name]) {
-      this.connectionUpdateSubjects[name] = new Subject<Partial<ConnectionState>>();
+    let subject = this.connectionUpdateSubjects.get(name);
+    if (!subject) {
+      subject = new Subject<Partial<ConnectionState>>();
+      this.connectionUpdateSubjects.set(name, subject);
     }
-    return this.connectionUpdateSubjects[name];
+    return subject;
   }
 
   /**
