@@ -20,14 +20,31 @@ class WebSocketServer {
   private webSocketDataSender: WebSocketDataSender;
 
   constructor(server: WebSocket.Server) {
+    // Armazena a instância do servidor WebSocket
     this.wss = server;
+
+    // Inicializa o middleware de autenticação
     this.authMiddleware = new AuthMiddleware();
+
+    // Obtém o Subject para receber notificações do código QR
     this.qrCodeSubject = WhatsAppSessionManager.getQrCodeObservable();
+
+    // Obtém o Subject para receber notificações de conexão estabelecida
     this.connectionEstablishedSubject = WhatsAppSessionManager.getConnectionEstablishedObservable();
+
+    // Inicializa o objeto responsável por enviar dados via WebSocket para as conexões ativas
     this.webSocketDataSender = new WebSocketDataSender(this.activeConnections);
+
+    // Configura o servidor WebSocket
     this.setupWebSocket();
+
+    // Inscreve-se no Subject do código QR para receber notificações
     this.subscribeToQrCodeSubject();
+
+    // Inscreve-se no Subject de conexão estabelecida para receber notificações
     this.subscribeToConnectionEstablishedSubject();
+
+    // Registra uma mensagem informativa de que o WebSocketServer foi inicializado
     logger.info('WebSocketServer inicializado');
   }
 
