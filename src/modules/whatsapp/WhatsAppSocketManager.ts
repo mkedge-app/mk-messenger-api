@@ -13,14 +13,12 @@ interface ConnectionUpdateData {
   update: Partial<ConnectionState>;
 }
 
-/**
- * Gerencia vários sockets do WhatsApp e fornece funcionalidades para criar e manipular conexões de socket.
- */
 class WhatsAppSocketManager {
   private sockets: Map<string, WASocket> = new Map();
   private connectionUpdateSubjects: { [name: string]: Subject<Partial<ConnectionState>> } = {};
   private fileUtils: FileUtils;
   private readonly tokensFolder: string;
+  private readonly loggerPrefix: string = '[WhatsAppSocketManager]';
 
   constructor() {
     this.fileUtils = new FileUtils();
@@ -34,7 +32,7 @@ class WhatsAppSocketManager {
    */
   public createSocketWhatsApp(name: string): Promise<void> {
     return new Promise<void>(async (resolve) => {
-      logger.info(`Criando sessão para ${name}...`);
+      logger.info(`${this.loggerPrefix} Criando sessão para ${name}...`);
       const { state, saveCreds } = await useMultiFileAuthState(`tokens/${name}`);
 
       const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: state });
@@ -43,7 +41,7 @@ class WhatsAppSocketManager {
         saveCreds();
       });
 
-      logger.info(`Ouvindo o evento 'connection.update' para o WASocket de ${name}`);
+      logger.info(`${this.loggerPrefix} Ouvindo atualizações de conexão para o WASocket de ${name}`);
       socketWhatsApp.ev.on('connection.update', (update: Partial<ConnectionState>) => {
         this.handleConnectionUpdate({ name, update });
       });
@@ -61,24 +59,26 @@ class WhatsAppSocketManager {
    */
   private async handleConnectionUpdate(data: ConnectionUpdateData): Promise<void> {
     const { name, update } = data;
-    logger.info(`Atualização de conexão do socket de ${name} recebida`);
+    logger.info(`${this.loggerPrefix} Atualização de conexão do socket de ${name} recebida...`);
 
     const { connection, lastDisconnect } = update;
     const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
 
     if (connection === 'close') {
+      logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} foi fechada`);
       this.sockets.delete(name);
 
       if (statusCode === DisconnectReason.loggedOut) {
         this.handleLoggedOut(name);
-        logger.info('Conexão fechada devido a logout');
+        logger.info(`${this.loggerPrefix} Motivo: Logout`);
 
       } else if (statusCode === DisconnectReason.restartRequired) {
+        logger.info(`${this.loggerPrefix} Motivo: Reinicialização necessária`);
         await this.createSocketWhatsApp(name); // Reconectar...
       }
 
     } else if (connection === 'open') {
-      logger.info('Conexão estabelecida');
+      logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} está sberta`);
       // Lógica para lidar com a conexão estabelecida
     }
 
@@ -126,15 +126,6 @@ class WhatsAppSocketManager {
   public async getExistingSessionNames(): Promise<string[]> {
     const folderNames = await fs.readdir(this.tokensFolder);
     return folderNames;
-  }
-
-  /**
-   * Obtém o socket do WhatsApp com base no nome da sessão.
-   * @param name O nome da sessão.
-   * @returns O socket do WhatsApp correspondente ou undefined se não for encontrado.
-   */
-  public getSocketByName(name: string): WASocket {
-    return this.sockets.get(name);
   }
 }
 
