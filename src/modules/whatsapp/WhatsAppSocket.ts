@@ -2,6 +2,8 @@ import makeWASocket, { ConnectionState, DisconnectReason, useMultiFileAuthState 
 import logger from '../../logger';
 import { Boom } from '@hapi/boom';
 import { Subject } from 'rxjs';
+import path from 'path';
+import FileUtils from '../../services/FileUtils';
 
 type WASocket = ReturnType<typeof makeWASocket>;
 type VoidResponse = void;
@@ -9,6 +11,7 @@ type QrCodeSubjectResponse = { qrcode: string };
 
 class WhatsAppSocket {
   private socket!: WASocket;
+
   private connectionUpdateSubject = new Subject<Partial<ConnectionState>>();
   private qrCodeSubject = new Subject<QrCodeSubjectResponse>();
   private connectionOpenedSubject = new Subject<VoidResponse>();
@@ -20,7 +23,13 @@ class WhatsAppSocket {
   private multideviceMismatchSubject = new Subject<VoidResponse>();
   private timedOutSubject = new Subject<VoidResponse>();
 
-  constructor(private readonly name: string) { }
+  private fileUtils: FileUtils;
+  private readonly tokensFolder = path.resolve(__dirname, '..', '..', '..', 'tokens');
+
+  constructor(private readonly name: string) {
+    this.fileUtils = new FileUtils();
+    this.tokensFolder = path.resolve(__dirname, '..', '..', '..', 'tokens');
+  }
 
   public async create(): Promise<void> {
     logger.info(`[WhatsAppSocket] Criando WASocket para ${this.name}...`);
@@ -54,14 +63,20 @@ class WhatsAppSocket {
     } else if (connection === 'open') {
       logger.info(`[WhatsAppSocket] A conexão com o socket de ${this.name} está aberta`);
       this.connectionUpdateSubject.next(update);
+      this.connectionOpenedSubject.next();
     } else if ('qr' in update && update.qr) {
-      this.emitQrCode(update.qr);
+      this.qrCodeSubject.next({ qrcode: update.qr });
     }
 
     this.connectionUpdateSubject.next(update);
   }
 
   private handleConnectionClosed(statusCode: number): void {
+
+    if (statusCode === DisconnectReason.loggedOut) {
+      this.handleLoggedOut();
+    }
+
     const subjects: { [key: number]: Subject<void> } = {
       [DisconnectReason.loggedOut]: this.connectionLoggedOutSubject,
       [DisconnectReason.restartRequired]: this.connectionRestartRequiredSubject,
@@ -79,12 +94,13 @@ class WhatsAppSocket {
     }
   }
 
-  private emitQrCode(qrCode: string): void {
-    this.qrCodeSubject.next({ qrcode: qrCode });
+  public async logout(): Promise<void> {
+    await this.socket.logout();
   }
 
-  public async close(): Promise<void> {
-    await this.socket.logout();
+  private handleLoggedOut(): void {
+    const tokensFolderPath = path.resolve(this.tokensFolder, this.name);
+    this.fileUtils.deleteFolderRecursive(tokensFolderPath);
   }
 
   public getConnectionUpdateSubject(): Subject<Partial<ConnectionState>> {
