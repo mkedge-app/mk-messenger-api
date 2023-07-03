@@ -5,42 +5,26 @@ import { Subject } from 'rxjs';
 
 type WASocket = ReturnType<typeof makeWASocket> | undefined;
 type VoidResponse = void;
-
-interface QrCodeSubjectResponse {
-  qrcode: string
-}
+type QrCodeSubjectResponse = { qrcode: string }
 
 class WhatsAppSocket {
   private socket: WASocket;
-  private connectionUpdateSubject: Subject<Partial<ConnectionState>>;
-  private qrCodeSubject: Subject<QrCodeSubjectResponse>;
-  private connectionOpenedSubject: Subject<VoidResponse>;
-  private connectionLoggedOutSubject: Subject<VoidResponse>;
-  private connectionRestartRequiredSubject: Subject<VoidResponse>;
-  private connectionBadSessionSubject: Subject<VoidResponse>;
-  private connectionClosedSubject: Subject<VoidResponse>;
-  private connectionLostSubject: Subject<VoidResponse>;
-  private connectionReplacedSubject: Subject<VoidResponse>;
-  private multideviceMismatchSubject: Subject<VoidResponse>;
-  private timedOutSubject: Subject<VoidResponse>;
+  private connectionUpdateSubject = new Subject<Partial<ConnectionState>>();
+  private qrCodeSubject = new Subject<QrCodeSubjectResponse>();
+  private connectionOpenedSubject = new Subject<VoidResponse>();
+  private connectionLoggedOutSubject = new Subject<VoidResponse>();
+  private connectionRestartRequiredSubject = new Subject<VoidResponse>();
+  private connectionBadSessionSubject = new Subject<VoidResponse>();
+  private connectionClosedSubject = new Subject<VoidResponse>();
+  private connectionLostSubject = new Subject<VoidResponse>();
+  private connectionReplacedSubject = new Subject<VoidResponse>();
+  private multideviceMismatchSubject = new Subject<VoidResponse>();
+  private timedOutSubject = new Subject<VoidResponse>();
 
-
-  constructor(private readonly name: string) {
-    this.connectionUpdateSubject = new Subject<Partial<ConnectionState>>();
-    this.qrCodeSubject = new Subject<QrCodeSubjectResponse>();
-    this.connectionOpenedSubject = new Subject<VoidResponse>();
-    this.connectionLoggedOutSubject = new Subject<VoidResponse>();
-    this.connectionRestartRequiredSubject = new Subject<VoidResponse>();
-    this.connectionBadSessionSubject = new Subject<VoidResponse>();
-    this.connectionClosedSubject = new Subject<VoidResponse>();
-    this.connectionLostSubject = new Subject<VoidResponse>();
-    this.connectionReplacedSubject = new Subject<VoidResponse>();
-    this.multideviceMismatchSubject = new Subject<VoidResponse>();
-    this.timedOutSubject = new Subject<VoidResponse>();
-  }
+  constructor(private readonly name: string) { }
 
   public async create(): Promise<void> {
-    logger.info(`[WhatsAppSocket] Criando sessão para ${this.name}...`);
+    logger.info(`[WhatsAppSocket] Criando WASocket para ${this.name}...`);
     const { state, saveCreds } = await useMultiFileAuthState(`tokens/${this.name}`);
 
     this.socket = makeWASocket({ printQRInTerminal: true, auth: state });
