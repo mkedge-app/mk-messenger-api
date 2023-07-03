@@ -20,9 +20,7 @@ class WhatsAppSocket {
   private multideviceMismatchSubject = new Subject<VoidResponse>();
   private timedOutSubject = new Subject<VoidResponse>();
 
-  constructor(private readonly name: string) {
-
-  }
+  constructor(private readonly name: string) { }
 
   public async create(): Promise<void> {
     logger.info(`[WhatsAppSocket] Criando WASocket para ${this.name}...`);
@@ -48,14 +46,11 @@ class WhatsAppSocket {
   private handleConnectionUpdate(update: Partial<ConnectionState>): void {
     logger.info(`[WhatsAppSocket] Atualização de conexão do socket de ${this.name} recebida...`);
     const { connection, lastDisconnect } = update;
-    const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
 
     if (connection === 'close') {
       logger.info(`[WhatsAppSocket] A conexão com o socket de ${this.name} foi fechada`);
-      this.socket = undefined;
-      if (statusCode) {
-        this.handleConnectionClosed(statusCode);
-      }
+      const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode
+      this.handleConnectionClosed(statusCode);
     } else if (connection === 'open') {
       logger.info(`[WhatsAppSocket] A conexão com o socket de ${this.name} está aberta`);
       this.connectionUpdateSubject.next(update);
@@ -72,7 +67,6 @@ class WhatsAppSocket {
       [DisconnectReason.restartRequired]: this.connectionRestartRequiredSubject,
       [DisconnectReason.badSession]: this.connectionBadSessionSubject,
       [DisconnectReason.connectionClosed]: this.connectionClosedSubject,
-      // [DisconnectReason.connectionLost]: this.connectionLostSubject,
       [DisconnectReason.connectionReplaced]: this.connectionReplacedSubject,
       [DisconnectReason.multideviceMismatch]: this.multideviceMismatchSubject,
       [DisconnectReason.timedOut]: this.timedOutSubject,
@@ -88,8 +82,6 @@ class WhatsAppSocket {
   private emitQrCode(qrCode: string): void {
     this.qrCodeSubject.next({ qrcode: qrCode });
   }
-
-  // Métodos para obter os subjects
 
   public getConnectionUpdateSubject(): Subject<Partial<ConnectionState>> {
     return this.connectionUpdateSubject;
