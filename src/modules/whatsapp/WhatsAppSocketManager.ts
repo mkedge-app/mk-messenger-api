@@ -67,24 +67,54 @@ class WhatsAppSocketManager {
     if (connection === 'close') {
       logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} foi fechada`);
       this.sockets.delete(name);
-
-      if (statusCode === DisconnectReason.loggedOut) {
-        this.handleLoggedOut(name);
-        logger.info(`${this.loggerPrefix} Motivo: Logout`);
-
-      } else if (statusCode === DisconnectReason.restartRequired) {
-        logger.info(`${this.loggerPrefix} Motivo: Reinicialização necessária`);
-        await this.createSocketWhatsApp(name); // Reconectar...
-      }
-
+      await this.handleConnectionClosed(name, statusCode);
     } else if (connection === 'open') {
-      logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} está sberta`);
+      logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} está aberta`);
       // Lógica para lidar com a conexão estabelecida
     }
 
     // Emitir a atualização da conexão para o Observable correspondente
     if (this.connectionUpdateSubjects[name]) {
       this.connectionUpdateSubjects[name].next(update);
+    }
+  }
+
+  /**
+   * Lida com o fechamento da conexão do socket do WhatsApp e executa a lógica correspondente com base no código de status.
+   * @param name O nome da conexão do socket do WhatsApp.
+   * @param statusCode O código de status que indica o motivo do fechamento da conexão.
+   * @returns Uma Promise que é resolvida quando a lógica de tratamento é concluída.
+   */
+  private async handleConnectionClosed(name: string, statusCode?: number): Promise<void> {
+    switch (statusCode) {
+      case DisconnectReason.loggedOut:
+        logger.info(`${this.loggerPrefix} Motivo: Logout`);
+        this.handleLoggedOut(name);
+        break;
+      case DisconnectReason.restartRequired:
+        logger.info(`${this.loggerPrefix} Motivo: Reinicialização necessária`);
+        await this.createSocketWhatsApp(name); // Reconectar...
+        break;
+      case DisconnectReason.badSession:
+        logger.info(`${this.loggerPrefix} Motivo: badSession`);
+        break;
+      case DisconnectReason.connectionClosed:
+        logger.info(`${this.loggerPrefix} Motivo: Conexão fechada`);
+        break;
+      case DisconnectReason.connectionLost:
+        logger.info(`${this.loggerPrefix} Motivo: Conexão perdida`);
+        break;
+      case DisconnectReason.connectionReplaced:
+        logger.info(`${this.loggerPrefix} Motivo: connectionReplaced`);
+        break;
+      case DisconnectReason.multideviceMismatch:
+        logger.info(`${this.loggerPrefix} Motivo: multideviceMismatch`);
+        break;
+      case DisconnectReason.timedOut:
+        logger.info(`${this.loggerPrefix} Motivo: timedOut`);
+        break;
+      default:
+        break;
     }
   }
 
@@ -125,8 +155,20 @@ class WhatsAppSocketManager {
    */
   public async getExistingSessionNames(): Promise<string[]> {
     const folderNames = await fs.readdir(this.tokensFolder);
-    return folderNames;
+    const nonEmptyFolderNames: string[] = [];
+
+    for (const folderName of folderNames) {
+      const folderPath = path.join(this.tokensFolder, folderName);
+      const folderContent = await fs.readdir(folderPath);
+
+      if (folderContent.length > 0) {
+        nonEmptyFolderNames.push(folderName);
+      }
+    }
+
+    return nonEmptyFolderNames;
   }
+
 }
 
 export default WhatsAppSocketManager;
