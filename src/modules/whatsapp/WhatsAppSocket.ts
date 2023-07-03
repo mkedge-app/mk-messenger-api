@@ -83,6 +83,10 @@ class WhatsAppSocket {
     this.qrCodeSubject.next({ qrcode: qrCode });
   }
 
+  public async close(): Promise<void> {
+    await this.socket.logout();
+  }
+
   public getConnectionUpdateSubject(): Subject<Partial<ConnectionState>> {
     return this.connectionUpdateSubject;
   }
