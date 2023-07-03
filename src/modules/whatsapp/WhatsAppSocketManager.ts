@@ -13,6 +13,9 @@ interface ConnectionUpdateData {
   update: Partial<ConnectionState>;
 }
 
+/**
+ * Gerencia vários sockets do WhatsApp e fornece funcionalidades para criar e manipular conexões de socket.
+ */
 class WhatsAppSocketManager {
   private sockets: Map<string, WASocket> = new Map();
   private connectionUpdateSubjects: { [name: string]: Subject<Partial<ConnectionState>> } = {};
@@ -116,9 +119,22 @@ class WhatsAppSocketManager {
     return tokensFolderPath;
   }
 
+  /**
+   * Retorna os nomes das sessões existentes.
+   * @returns Uma Promise que é resolvida com um array de nomes de sessão.
+   */
   public async getExistingSessionNames(): Promise<string[]> {
     const folderNames = await fs.readdir(this.tokensFolder);
     return folderNames;
+  }
+
+  /**
+   * Obtém o socket do WhatsApp com base no nome da sessão.
+   * @param name O nome da sessão.
+   * @returns O socket do WhatsApp correspondente ou undefined se não for encontrado.
+   */
+  public getSocketByName(name: string): WASocket {
+    return this.sockets.get(name);
   }
 }
 
