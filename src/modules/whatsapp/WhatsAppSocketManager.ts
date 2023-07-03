@@ -119,6 +119,15 @@ class WhatsAppSocketManager {
   }
 
   /**
+   * Manipula a ação de logout de uma sessão do WhatsApp.
+   * @param name O nome da sessão.
+   */
+  private handleLoggedOut(name: string): void {
+    const tokensFolderPath = path.resolve(this.tokensFolder, name);
+    this.fileUtils.deleteFolderRecursive(tokensFolderPath);
+  }
+
+  /**
    * Obtém o Observable de atualização de conexão para um nome de sessão específico.
    * @param name O nome da sessão.
    * @returns O Observable de atualização de conexão.
@@ -128,25 +137,6 @@ class WhatsAppSocketManager {
       this.connectionUpdateSubjects[name] = new Subject<Partial<ConnectionState>>();
     }
     return this.connectionUpdateSubjects[name];
-  }
-
-  /**
-   * Manipula a ação de logout de uma sessão do WhatsApp.
-   * @param name O nome da sessão.
-   */
-  private handleLoggedOut(name: string): void {
-    const tokensFolderPath = this.resolveTokensFolderPath(name);
-    this.fileUtils.deleteFolderRecursive(tokensFolderPath);
-  }
-
-  /**
-   * Resolve o caminho da pasta de tokens para uma sessão específica.
-   * @param name O nome da sessão.
-   * @returns O caminho completo da pasta de tokens.
-   */
-  private resolveTokensFolderPath(name: string): string {
-    const tokensFolderPath = path.resolve(this.tokensFolder, name);
-    return tokensFolderPath;
   }
 
   /**
@@ -169,6 +159,14 @@ class WhatsAppSocketManager {
     return nonEmptyFolderNames;
   }
 
+  /**
+   * Obtém o socket do WhatsApp com base no nome da sessão.
+   * @param name O nome da sessão.
+   * @returns O socket do WhatsApp correspondente ou undefined se não for encontrado.
+   */
+  public getSocketByName(name: string): WASocket {
+    return this.sockets.get(name);
+  }
 }
 
 export default WhatsAppSocketManager;
