@@ -35,7 +35,7 @@ class WhatsAppSocketManager {
       logger.info(`${this.loggerPrefix} Criando sessão para ${name}...`);
       const { state, saveCreds } = await useMultiFileAuthState(`tokens/${name}`);
 
-      const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: state });
+      const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: state, qrTimeout: 20000 });
 
       socketWhatsApp.ev.on('creds.update', () => {
         saveCreds();
