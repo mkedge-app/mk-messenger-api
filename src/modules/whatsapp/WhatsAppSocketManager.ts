@@ -144,6 +144,7 @@ class WhatsAppSocketManager {
    * @returns Uma Promise que é resolvida com um array de nomes de sessão.
    */
   public async getExistingSessionNames(): Promise<string[]> {
+    logger.info('[WhatsAppSocketManager]: Buscando sessões existentes...');
     const folderNames = await fs.readdir(this.tokensFolder);
     const nonEmptyFolderNames: string[] = [];
 
@@ -153,6 +154,8 @@ class WhatsAppSocketManager {
 
       if (folderContent.length > 0) {
         nonEmptyFolderNames.push(folderName);
+      } else {
+        await fs.remove(folderPath);
       }
     }
 
