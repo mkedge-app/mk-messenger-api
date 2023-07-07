@@ -62,8 +62,15 @@ class WhatsAppSessionManager {
       // Verifica se a conexão foi aberta
       else if (connection === 'open') {
         const session = { name, active: true };
-        // Adiciona a sessão ao array de sessões como ativa
-        this.sessions.push(session);
+        const existingSessionIndex = this.sessions.findIndex(s => s.name === name);
+
+        if (existingSessionIndex !== -1) {
+          // A sessão já existe no array, então atualize apenas o status
+          this.updateSessionState(name, true);
+        } else {
+          // A sessão não existe no array, então adicione-a
+          this.sessions.push(session);
+        }
 
         // Notifica que a conexão foi estabelecida com sucesso
         this.connectionEstablishedSubject.next(session);
@@ -115,10 +122,14 @@ class WhatsAppSessionManager {
 
   public deleteSession(name: string) {
     this.socketManager.logoutSessionByName(name);
+    const sessionToRemove = name;
+    const updatedSessions = this.sessions.filter((session) => session.name !== sessionToRemove);
+    this.sessions = updatedSessions;
   }
 
-  deactivateSession(name: string) {
+  public deactivateSession(name: string) {
     this.socketManager.deactivateSession(name);
+    this.updateSessionState(name, false);
   }
 }
 
