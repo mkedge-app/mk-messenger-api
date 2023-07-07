@@ -68,8 +68,6 @@ class WhatsAppSocketManager {
       logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} foi fechada`);
       this.sockets.delete(name);
       await this.handleConnectionClosed(name, statusCode);
-    } else if (connection === 'open') {
-      logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} está aberta`);
     }
 
     // Emitir a atualização da conexão para o Observable correspondente
