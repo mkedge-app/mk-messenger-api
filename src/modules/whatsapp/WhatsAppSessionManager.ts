@@ -79,6 +79,7 @@ class WhatsAppSessionManager {
   public async restoreSessions(): Promise<void> {
     const sessionNames = await this.socketManager.getExistingSessionNames();
     for (const name of sessionNames) {
+      logger.info(`[WhatsAppSessionManager] Restaurando sessão de ${name}`);
       this.initializeSession(name);
     }
   }
