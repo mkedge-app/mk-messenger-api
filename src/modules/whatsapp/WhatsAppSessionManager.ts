@@ -112,6 +112,13 @@ class WhatsAppSessionManager {
   public getSessionByName(name: string): Session | undefined {
     return this.sessions.find(session => session.name === name);
   }
+
+  public deleteSession(name: string) {
+    this.socketManager.logoutSessionByName(name);
+    const sessionToRemove = name;
+    const updatedSessions = this.sessions.filter((session) => session.name !== sessionToRemove);
+    this.sessions = updatedSessions;
+  }
 }
 
 export default new WhatsAppSessionManager();
