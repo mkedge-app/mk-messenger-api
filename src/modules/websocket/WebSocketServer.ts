@@ -79,12 +79,11 @@ class WebSocketServer {
     WhatsAppSessionManager.initializeSession(tenantId);
 
     ws.on('close', () => {
-      console.log('Cliente desconectado');
       // Remover a conexão fechada do objeto de conexões
       if (tenantId) {
         delete this.activeConnections[tenantId];
+        WhatsAppSessionManager.handleWSClientDisconnection(tenantId);
       }
-      // Lógica para manipular o fechamento da conexão
     });
   }
 
