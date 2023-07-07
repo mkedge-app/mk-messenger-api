@@ -115,9 +115,10 @@ class WhatsAppSessionManager {
 
   public deleteSession(name: string) {
     this.socketManager.logoutSessionByName(name);
-    const sessionToRemove = name;
-    const updatedSessions = this.sessions.filter((session) => session.name !== sessionToRemove);
-    this.sessions = updatedSessions;
+  }
+
+  deactivateSession(name: string) {
+    this.socketManager.deactivateSession(name);
   }
 }
 
