@@ -31,6 +31,20 @@ class WhatsAppSessionController {
       return res.status(404).json({ error: 'Sessão não encontrada' });
     }
   }
+
+  async update(req: Request, res: Response) {
+    const name = req.params.name;
+    const session = WhatsAppSessionManager.getSessionByName(name);
+
+    if (session) {
+      // Chame o método para excluir a sessão aqui
+      WhatsAppSessionManager.deactivateSession(name);
+
+      return res.json({ message: 'Sessão desativada com sucesso' });
+    } else {
+      return res.status(404).json({ error: 'Sessão não encontrada' });
+    }
+  }
 }
 
 export default new WhatsAppSessionController();
