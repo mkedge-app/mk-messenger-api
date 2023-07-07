@@ -76,6 +76,10 @@ class WhatsAppSessionManager {
     });
   }
 
+  handleWSClientDisconnection(name: string) {
+    this.socketManager.handleWebSocketClientDisconnection(name);
+  }
+
   public async restoreSessions(): Promise<void> {
     const sessionNames = await this.socketManager.getExistingSessionNames();
     for (const name of sessionNames) {
