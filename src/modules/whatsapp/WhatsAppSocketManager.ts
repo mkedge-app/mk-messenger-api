@@ -68,8 +68,6 @@ class WhatsAppSocketManager {
       logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} foi fechada`);
       this.sockets.delete(name);
       await this.handleConnectionClosed(name, statusCode);
-    } else if (connection === 'open') {
-      logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} está aberta`);
     }
 
     // Emitir a atualização da conexão para o Observable correspondente
@@ -144,6 +142,7 @@ class WhatsAppSocketManager {
    * @returns Uma Promise que é resolvida com um array de nomes de sessão.
    */
   public async getExistingSessionNames(): Promise<string[]> {
+    logger.info('[WhatsAppSocketManager]: Buscando sessões existentes...');
     const folderNames = await fs.readdir(this.tokensFolder);
     const nonEmptyFolderNames: string[] = [];
 
@@ -153,6 +152,8 @@ class WhatsAppSocketManager {
 
       if (folderContent.length > 0) {
         nonEmptyFolderNames.push(folderName);
+      } else {
+        await fs.remove(folderPath);
       }
     }
 
@@ -166,6 +167,28 @@ class WhatsAppSocketManager {
    */
   public getSocketByName(name: string): WASocket {
     return this.sockets.get(name);
+  }
+
+  /**
+   * Manipula a desconexão de um cliente do WebSocket.
+   * @param name O nome do cliente.
+   */
+  public handleWebSocketClientDisconnection(name: string): void {
+    const WASocket = this.getSocketByName(name);
+
+    if (WASocket) {
+      if (!WASocket.user) {
+        // A sessão foi abandonada durante a inicialização
+        WASocket.logout();
+
+        // Cancelar a assinatura do Observable de atualização de conexão
+        const subject = this.connectionUpdateSubjects.get(name);
+        subject?.unsubscribe();
+
+        // Remover o Observable do mapa de Observables de atualização de conexão
+        this.connectionUpdateSubjects.delete(name);
+      }
+    }
   }
 }
 
