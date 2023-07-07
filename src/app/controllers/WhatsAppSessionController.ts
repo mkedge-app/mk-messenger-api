@@ -34,17 +34,24 @@ class WhatsAppSessionController {
 
   async update(req: Request, res: Response) {
     const name = req.params.name;
+    const { action } = req.body;
     const session = WhatsAppSessionManager.getSessionByName(name);
 
     if (session) {
-      // Chame o método para excluir a sessão aqui
-      WhatsAppSessionManager.deactivateSession(name);
-
-      return res.json({ message: 'Sessão desativada com sucesso' });
+      if (action === 'deactivate') {
+        WhatsAppSessionManager.deactivateSession(name);
+        return res.json({ message: 'Sessão desativada com sucesso' });
+      } else if (action === 'activate') {
+        WhatsAppSessionManager.initializeSession(name);
+        return res.json({ message: 'Sessão ativada com sucesso' });
+      } else {
+        return res.status(400).json({ error: 'Ação inválida' });
+      }
     } else {
       return res.status(404).json({ error: 'Sessão não encontrada' });
     }
   }
+
 }
 
 export default new WhatsAppSessionController();
