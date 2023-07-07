@@ -190,6 +190,21 @@ class WhatsAppSocketManager {
       }
     }
   }
+
+  public logoutSessionByName(name: string): void {
+    const WASocket = this.getSocketByName(name);
+
+    if (WASocket) {
+      WASocket.logout();
+
+      // Cancelar a assinatura do Observable de atualização de conexão
+      const subject = this.connectionUpdateSubjects.get(name);
+      subject?.unsubscribe();
+
+      // Remover o Observable do mapa de Observables de atualização de conexão
+      this.connectionUpdateSubjects.delete(name);
+    }
+  }
 }
 
 export default WhatsAppSocketManager;
