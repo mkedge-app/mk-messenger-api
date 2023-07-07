@@ -24,6 +24,7 @@ routes.delete("/tenants/:id", TenantController.delete);
 routes.get("/whatsapp/sessions", WhatsAppSessionController.index);
 routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
 routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
+routes.patch("/whatsapp/sessions/:name", WhatsAppSessionController.update);
 
 // Aplicar middleware de autenticação
 routes.use(tenantStatusCheck);
