@@ -1,4 +1,4 @@
-import makeWASocket, { ConnectionState, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import makeWASocket, { ConnectionState, DisconnectReason, WAProto, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
 import fs from 'fs-extra';
 import path from 'path';
@@ -218,6 +218,18 @@ class WhatsAppSocketManager {
 
       // Remover o Observable do mapa de Observables de atualização de conexão
       this.connectionUpdateSubjects.delete(name);
+    }
+  }
+
+  public async sendTextMessage(name: string, to: string, text: string): Promise<WAProto.WebMessageInfo | undefined> {
+    const WASocket = this.getSocketByName(name);
+
+    if (WASocket) {
+      const id = `${to}@s.whatsapp.net`
+      const sentMsg = await WASocket.sendMessage(id, { text });
+      return sentMsg;
+    } else {
+      return undefined;
     }
   }
 }
