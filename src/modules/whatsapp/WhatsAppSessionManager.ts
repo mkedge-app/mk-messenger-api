@@ -131,6 +131,11 @@ class WhatsAppSessionManager {
     this.socketManager.deactivateSession(name);
     this.updateSessionState(name, false);
   }
+
+  public async sendTextMessage(name: string, to: string, text: string) {
+    const sentMessage = await this.socketManager.sendTextMessage(name, to, text);
+    return sentMessage;
+  }
 }
 
 export default new WhatsAppSessionManager();
