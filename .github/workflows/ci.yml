@@ -23,3 +23,9 @@ jobs:
 
       - name: Run unit tests
         run: npm test
+
+      - name: Application build
+        run: npm build
+
+      - name: Copy files to remote server
+        run: scp -r dist mk-edge@172.31.255.3:/srv/mk-messenger-api
