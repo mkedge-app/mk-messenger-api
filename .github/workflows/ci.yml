@@ -25,7 +25,7 @@ jobs:
         run: npm test
 
       - name: Application build
-        run: npm build
+        run: npm run build
 
       - name: Copy files to remote server
         run: scp -r dist root@177.53.239.83:/srv/mk-messenger-api
