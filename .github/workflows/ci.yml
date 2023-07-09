@@ -28,4 +28,4 @@ jobs:
         run: npm build
 
       - name: Copy files to remote server
-        run: scp -r dist mk-edge@172.31.255.3:/srv/mk-messenger-api
+        run: scp -r dist root@177.53.239.83:/srv/mk-messenger-api
