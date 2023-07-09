@@ -27,5 +27,11 @@ jobs:
       - name: Application build
         run: npm run build
 
-      - name: Copy files to remote server
-        run: scp -r dist root@177.53.239.83:/srv/mk-messenger-api
+      - name: Sync files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: dist
+          server-dir: /srv/mk-messenger-api
