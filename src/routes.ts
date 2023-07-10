@@ -1,10 +1,11 @@
 import { Router } from "express";
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
-import WhatsAppController from "./app/controllers/WhatsappController";
+import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
 
 import { authenticateTenant } from "./middlewares/authenticateTenant";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
+import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
 
 const routes = Router();
 
@@ -20,11 +21,16 @@ routes.post("/tenants", TenantController.create);
 routes.get("/tenants/:id", TenantController.show);
 routes.delete("/tenants/:id", TenantController.delete);
 
-// Aplicar middleware de autenticação
+// Rotas de interação com o gerenciador de sessões WhatsApp
+routes.get("/whatsapp/sessions", WhatsAppSessionController.index);
+routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
+routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
+routes.patch("/whatsapp/sessions/:name", WhatsAppSessionController.update);
+
+// Aplicar middleware de verificação de status
 routes.use(tenantStatusCheck);
 
-// Rotas de interação com o WhatsApp
-routes.post("/whatsapp/sessions", WhatsAppController.create);
-routes.get("/whatsapp/sessions/:key", WhatsAppController.show);
+// Rota para envio de mensagens
+routes.post("/whatsapp/sessions/:name/message", WhatsAppMessageController.create);
 
 export default routes;
