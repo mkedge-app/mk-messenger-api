@@ -1,9 +1,9 @@
-name: CI Workflow
+name: Pull Request Workflow
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types:
+      - opened
 
 jobs:
   install_dependencies:
