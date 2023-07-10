@@ -9,9 +9,9 @@ class TenantController {
   async index(req: Request, res: Response) {
     try {
       const tenants = await Tenant.find();
-      return res.status(200).json(tenants);
+      res.status(200).json(tenants);
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao listar tenants' });
+      res.status(500).json({ error: 'Erro ao listar tenants' });
     }
   }
 
@@ -21,20 +21,14 @@ class TenantController {
   async show(req: Request, res: Response) {
     const { id } = req.params;
 
-    if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Id é obrigatória" });
-    }
-
     try {
       const tenant = await Tenant.findById(id);
       if (!tenant) {
         return res.status(404).json({ error: 'Tenant não encontrado' });
       }
-      return res.status(200).json(tenant);
+      res.status(200).json(tenant);
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao obter tenant' });
+      res.status(500).json({ error: 'Erro ao obter tenant' });
     }
   }
 
@@ -66,9 +60,9 @@ class TenantController {
         usuario,
         senha: hashPwd,
       });
-      return res.status(201).json(tenant);
+      res.status(201).json(tenant);
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao criar tenant' });
+      res.status(500).json({ error: 'Erro ao criar tenant' });
     }
   }
 
@@ -78,22 +72,18 @@ class TenantController {
   async delete(req: Request, res: Response) {
     const { id } = req.params;
 
-    if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Id é obrigatória" });
-    }
-
     try {
       const deletedTenant = await Tenant.findByIdAndDelete(id);
       if (!deletedTenant) {
         return res.status(404).json({ error: 'Tenant não encontrado' });
       }
-      return res.status(200).json({ message: 'Tenant excluído com sucesso' });
+      res.status(200).json({ message: 'Tenant excluído com sucesso' });
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao excluir tenant' });
+      res.status(500).json({ error: 'Erro ao excluir tenant' });
     }
   }
+
+
 }
 
 export default new TenantController();

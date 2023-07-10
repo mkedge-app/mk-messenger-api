@@ -30,8 +30,3 @@ export interface WppSessionResponse {
   message: string;
   data: Session[]
 }
-
-export interface QRCodeData {
-  name: string;
-  qrcode: string;
-}
