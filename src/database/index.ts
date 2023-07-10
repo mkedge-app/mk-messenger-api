@@ -10,10 +10,9 @@ class Database {
     this.mongo();
   }
 
-  /**
-   * Connects to MongoDB and then connects to the active tenants' databases.
-   */
   async mongo(): Promise<void> {
+    logger.info('Connecting to MongoDB...');
+
     try {
       this.mongoConnection = await mongoose.connect(MONGO_DB_URL, {
         connectTimeoutMS: 5000, // Timeout da conexão (5 segundos)
