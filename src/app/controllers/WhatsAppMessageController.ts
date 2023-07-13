@@ -11,9 +11,12 @@ class WhatsAppMessageController {
 
     // Se todos os parâmetros estiverem corretos, execute a lógica de envio de mensagem
     try {
-      await WhatsAppSessionManager.sendTextMessage(name, to, text);
-
-      return res.json({ message: 'Mensagem enviada com sucesso'});
+      const sentMessage = await WhatsAppSessionManager.sendTextMessage(name, to, text);
+      if (sentMessage) {
+        return res.json({ message: "Mensagem enviada com sucesso"});
+      } else {
+        return res.status(500).json({ error: "Erro ao enviar mensagem" });  
+      }
     } catch (error) {
       console.log("Erro ao enviar mensagem:", error);
       return res.status(500).json({ error: "Erro ao enviar mensagem" });
