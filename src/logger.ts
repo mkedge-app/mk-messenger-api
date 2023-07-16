@@ -1,40 +1,63 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
+import { format as dateFnsFormat, utcToZonedTime } from 'date-fns-tz';
 
-/**
- * An empty array to hold the logger transports.
- */
-const loggerTransports = [];
+const timezone = 'America/Manaus';
 
-/**
- * Checking the environment variable NODE_ENV to determine which logger transport to use.
- * If the environment is development, the logger will output to the console.
- * If the environment is production, the logger will output to a rotating log file.
- */
-if (process.env.NODE_ENV === 'development') {
-  loggerTransports.push(new winston.transports.Console());
-} else if (process.env.NODE_ENV === 'production') {
-  const transport = new DailyRotateFile({
-    filename: 'logs/application-%DATE%.log',
-    datePattern: 'YYYY-MM-DD',
-    zippedArchive: true,
-    maxSize: '20m',
-    maxFiles: '30d',
-  });
+const customFormat = winston.format.printf(({ timestamp, level, message }) => {
+  const localTimestamp = utcToZonedTime(new Date(timestamp), timezone);
+  const formattedTimestamp = dateFnsFormat(localTimestamp, 'yyyy-MM-dd HH:mm:ss');
 
-  loggerTransports.push(transport); // Adding the transport to save logs to rotating files
-}
-
-/**
- * Creating a new logger instance with the specified level, format, and transports.
- */
-const logger = winston.createLogger({
-  level: 'info', // Minimum log level to be recorded
-  format: winston.format.simple(), // Log format
-  transports: loggerTransports, // Adding the configured transports
+  return `${formattedTimestamp} ${level}: ${message}`;
 });
 
-/**
- * Exporting the logger instance as the default export of this module.
- */
-export default logger;
+class Logger {
+  private loggerTransports: winston.transport[];
+  private logger!: winston.Logger;
+
+  constructor() {
+    this.loggerTransports = [];
+    this.createTransports();
+    this.createLogger();
+  }
+
+  private createTransports() {
+    if (process.env.NODE_ENV === 'development') {
+      // Output logs to the console during development
+      this.loggerTransports.push(new winston.transports.Console());
+    } else if (process.env.NODE_ENV === 'production') {
+      // Use rotating log files in production
+      const transport = new DailyRotateFile({
+        filename: 'logs/application-%DATE%.log',
+        datePattern: 'YYYY-MM-DD',
+        zippedArchive: true,
+        maxSize: '20m',
+        maxFiles: '30d',
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          customFormat
+        ),
+      });
+
+      this.loggerTransports.push(transport);
+    }
+  }
+
+  private createLogger() {
+    this.logger = winston.createLogger({
+      level: 'info',
+      format: winston.format.simple(),
+      transports: this.loggerTransports,
+      exceptionHandlers: [new winston.transports.Console()],
+      exitOnError: false,
+    });
+  }
+
+  public getLogger(): winston.Logger {
+    return this.logger;
+  }
+}
+
+// Exportando uma instância da classe para ser utilizada em outros módulos
+const loggerInstance = new Logger();
+export default loggerInstance.getLogger();
