@@ -213,13 +213,17 @@ class WhatsAppSocketManager {
   }
 
   public async sendTextMessage(name: string, to: string, text: string): Promise<WAProto.WebMessageInfo | undefined> {
+    logger.info(`[WhatsAppSessionManager] Enviando mensagem de texto de ${name} para ${to}: ${text}`);
     const WASocket = this.getSocketByName(name);
-
+  
     if (WASocket) {
-      const id = `${to}@s.whatsapp.net`
+      const id = `${to}@s.whatsapp.net`;
+      logger.debug(`[WhatsAppSessionManager] Enviando mensagem via socket de ${name}: ${text}`);
       const sentMsg = await WASocket.sendMessage(id, { text });
+      logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
       return sentMsg;
     } else {
+      logger.error(`[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`);
       return undefined;
     }
   }
