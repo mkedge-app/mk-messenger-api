@@ -96,6 +96,7 @@ class WhatsAppSocketManager {
         break;
       case DisconnectReason.connectionClosed:
         logger.info(`${this.loggerPrefix} Motivo: Conexão fechada`);
+        await this.createSocketWhatsApp(name); // Reconectar...
         break;
       case DisconnectReason.connectionLost:
         logger.info(`${this.loggerPrefix} Motivo: Conexão perdida`);
@@ -208,17 +209,7 @@ class WhatsAppSocketManager {
 
   public deactivateSession(name: string) {
     const WASocket = this.getSocketByName(name);
-
-    if (WASocket) {
-      WASocket.ws.close();
-
-      // Cancelar a assinatura do Observable de atualização de conexão
-      const subject = this.connectionUpdateSubjects.get(name);
-      subject?.unsubscribe();
-
-      // Remover o Observable do mapa de Observables de atualização de conexão
-      this.connectionUpdateSubjects.delete(name);
-    }
+    if (WASocket) { WASocket.ws.close() }
   }
 
   public async sendTextMessage(name: string, to: string, text: string): Promise<WAProto.WebMessageInfo | undefined> {
