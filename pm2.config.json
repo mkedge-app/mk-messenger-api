@@ -1,0 +1,15 @@
+{
+    "apps": [
+      {
+        "name": "mk-messenger-api",
+        "script": "dist/index.js",
+        "cwd": "/srv/mk-messenger-api/",
+        "instances": 1,
+        "exec_mode": "cluster",
+        "env": {
+          "NODE_ENV": "production"
+        }
+      }
+    ]
+  }
+  
