@@ -51,19 +51,24 @@ class WebSocketServer {
   private setupWebSocket(): void {
     this.wss.on('connection', (ws: WebSocket, req: IncomingMessage): void => {
       logger.info(`Pedido para inicializar sessão recebido`);
-      // Middleware de autenticação
-      this.authMiddleware.handleConnection(req, (authenticated: boolean, tenantId?: string) => {
-        if (authenticated) {
-          if (tenantId) {
-            // Lidar com a conexão autenticada
-            this.handleAuthenticatedConnection(ws, tenantId);
+
+      ws.on('message', (message: string) => {
+        const { token } = JSON.parse(message);
+
+        // Middleware de autenticação
+        this.authMiddleware.handleConnection(token, (authenticated: boolean, tenantId?: string) => {
+          if (authenticated) {
+            if (tenantId) {
+              // Lidar com a conexão autenticada
+              this.handleAuthenticatedConnection(ws, tenantId);
+            } else {
+              this.handleMissingTenantId(ws);
+            }
           } else {
-            this.handleMissingTenantId(ws);
+            // Lidar com a conexão não autorizada
+            this.handleUnauthorizedConnection(ws);
           }
-        } else {
-          // Lidar com a conexão não autorizada
-          this.handleUnauthorizedConnection(ws);
-        }
+        });
       });
     });
   }
