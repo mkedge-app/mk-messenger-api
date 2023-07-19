@@ -8,9 +8,7 @@ class AuthMiddleware {
     this.tokenValidator = new TokenValidator();
   }
 
-  public handleConnection(req: IncomingMessage, callback: (authenticated: boolean, tenantId?: string) => void): void {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-
+  public handleConnection(token: string, callback: (authenticated: boolean, tenantId?: string) => void): void {
     if (!token) {
       callback(false);
       return;
