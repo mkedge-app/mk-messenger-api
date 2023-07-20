@@ -1,6 +1,7 @@
 import WhatsAppSocketManager from './WhatsAppSocketManager';
 import { Boom } from '@hapi/boom';
 import logger from '../../logger';
+import QRCode from 'qrcode';
 import { DisconnectReason } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
 import { QRCodeData } from '../../types/WhatsAppApi';
@@ -26,12 +27,15 @@ class WhatsAppSessionManager {
   public async initializeSession(name: string): Promise<void> {
     const existingSession = this.sessions.find(session => session.name === name);
     if (existingSession && existingSession.active) {
-      logger.info(`A sessão ${name} já está ativa.`);
-      return;
+      const errorMessage = `A sessão ${name} já está ativa.`;
+      logger.error(errorMessage);
+      return Promise.reject(new Error(errorMessage));
     }
 
     await this.socketManager.createSocketWhatsApp(name);
     this.listenToConnectionUpdates(name);
+
+    return Promise.resolve();
   }
 
   private listenToConnectionUpdates(name: string): void {
@@ -77,8 +81,15 @@ class WhatsAppSessionManager {
       }
       // Verifica se há um QR Code disponível na atualização
       else if ('qr' in update && update.qr) {
-        // Emite o QR Code para os assinantes interessados
-        this.qrCodeSubject.next({ name, qrcode: update.qr });
+        QRCode.toDataURL(update.qr, (err, url) => {
+          if (err) {
+            logger.error('Erro ao converter QR Code:', err);
+            return;
+          }
+
+          // Emite o QR Code para subscribers
+          this.qrCodeSubject.next({ name, qrcode: url });
+        });
       }
     });
   }
