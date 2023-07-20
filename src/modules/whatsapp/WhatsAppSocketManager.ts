@@ -219,9 +219,15 @@ class WhatsAppSocketManager {
     if (WASocket) {
       const id = `${to}@s.whatsapp.net`;
       logger.debug(`[WhatsAppSessionManager] Enviando mensagem via socket de ${name}: ${text}`);
-      const sentMsg = await WASocket.sendMessage(id, { text });
-      logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
-      return sentMsg;
+      try {
+        const sentMsg = await WASocket.sendMessage(id, { text });
+        logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
+        logger.info(JSON.stringify(sentMsg));
+        return sentMsg;
+      } catch (error) {
+        logger.error(JSON.stringify(error));
+        return undefined;
+      }
     } else {
       logger.error(`[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`);
       return undefined;
