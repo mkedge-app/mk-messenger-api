@@ -73,7 +73,7 @@ class WebSocketServer {
     });
   }
 
-  private handleAuthenticatedConnection(ws: WebSocket, tenantId: string): void {
+  private async handleAuthenticatedConnection(ws: WebSocket, tenantId: string): Promise<void> {
     // Adicionar a conexão ativa ao objeto de conexões usando o tenantId como chave
     this.activeConnections[tenantId] = ws;
 
@@ -81,7 +81,12 @@ class WebSocketServer {
     this.webSocketDataSender.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
 
     // Informar o WhatsAppSessionManager sobre a nova conexão em busca de QR code
-    WhatsAppSessionManager.initializeSession(tenantId);
+    try {
+      await WhatsAppSessionManager.initializeSession(tenantId);
+    } catch (error: any) {
+      this.webSocketDataSender.sendErrorMessage(ws, error.message);
+      ws.close();
+    }
 
     ws.on('close', () => {
       // Remover a conexão fechada do objeto de conexões
