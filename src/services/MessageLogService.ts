@@ -38,6 +38,24 @@ class MessageLogService {
       throw new Error("Erro ao atualizar status da mensagem");
     }
   }
+
+  async getMessagesByRequester(requester: string): Promise<IMessage[]> {
+    try {
+      const messages = await Message.find({ remoteJid: requester });
+      return messages;
+    } catch (error) {
+      throw new Error("Erro ao obter mensagens do requester");
+    }
+  }
+
+  async getAllMessages(): Promise<IMessage[]> {
+    try {
+      const messages = await Message.find({});
+      return messages;
+    } catch (error) {
+      throw new Error("Erro ao obter todas as mensagens do log");
+    }
+  }
 }
 
 export default new MessageLogService();
