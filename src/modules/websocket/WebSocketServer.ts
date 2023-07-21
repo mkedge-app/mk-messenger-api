@@ -48,10 +48,12 @@ class WebSocketServer {
     logger.info('WebSocketServer inicializado');
   }
 
+  // Configura o servidor WebSocket e define o callback para quando novas conexões são estabelecidas
   private setupWebSocket(): void {
     this.wss.on('connection', (ws: WebSocket, req: IncomingMessage): void => {
       logger.info(`Pedido para inicializar sessão recebido`);
 
+      // Define um callback para quando uma mensagem é recebida da conexão WebSocket
       ws.on('message', (message: string) => {
         const { token } = JSON.parse(message);
 
@@ -73,6 +75,7 @@ class WebSocketServer {
     });
   }
 
+  // Trata uma conexão autenticada
   private async handleAuthenticatedConnection(ws: WebSocket, tenantId: string): Promise<void> {
     // Adicionar a conexão ativa ao objeto de conexões usando o tenantId como chave
     this.activeConnections[tenantId] = ws;
@@ -88,6 +91,7 @@ class WebSocketServer {
       ws.close();
     }
 
+    // Define um callback para quando a conexão é fechada pelo cliente
     ws.on('close', () => {
       // Remover a conexão fechada do objeto de conexões
       if (tenantId) {
@@ -97,6 +101,7 @@ class WebSocketServer {
     });
   }
 
+  // Trata uma conexão que não fornece o ID do tenant
   private handleMissingTenantId(ws: WebSocket): void {
     // Enviar mensagem de erro para o cliente
     this.webSocketDataSender.sendErrorMessage(ws, 'ID do tenant não fornecido');
@@ -104,6 +109,7 @@ class WebSocketServer {
     ws.close();
   }
 
+  // Trata uma conexão não autorizada
   private handleUnauthorizedConnection(ws: WebSocket): void {
     // Enviar mensagem de erro para o cliente
     this.webSocketDataSender.sendErrorMessage(ws, 'Token não fornecido ou inválido');
@@ -111,6 +117,7 @@ class WebSocketServer {
     ws.close();
   }
 
+  // Inscreve-se no Subject do código QR para receber notificações
   private subscribeToQrCodeSubject(): void {
     this.qrCodeSubject.subscribe((data: QRCodeData) => {
       // Enviar o QR code para o cliente (WebSocket)
@@ -118,6 +125,7 @@ class WebSocketServer {
     });
   }
 
+  // Inscreve-se no Subject de conexão estabelecida para receber notificações
   private subscribeToConnectionEstablishedSubject(): void {
     this.connectionEstablishedSubject.subscribe((data: Session) => {
       // Enviar dados para o cliente (WebSocket)
