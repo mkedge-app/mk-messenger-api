@@ -42,7 +42,6 @@ class WhatsAppMessageController {
       }
     } catch (error) {
       // Tratar qualquer erro ocorrido durante o envio da mensagem
-      console.log("Erro ao enviar mensagem:", error);
       return res.status(500).json({ error: "Erro ao enviar mensagem" });
     }
   }
