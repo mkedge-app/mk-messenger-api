@@ -1,12 +1,12 @@
 import { Router } from "express";
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
+import MessageLogController from "./app/controllers/MessageLogController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
+import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
 
 import { authenticateTenant } from "./middlewares/authenticateTenant";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
-import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
-import MessageLogController from "./app/controllers/MessageLogController";
 
 const routes = Router();
 
