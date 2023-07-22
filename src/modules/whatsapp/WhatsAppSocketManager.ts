@@ -135,6 +135,8 @@ class WhatsAppSocketManager {
         logger.info(`${this.loggerPrefix} Motivo: timedOut`);
         break;
       default:
+        logger.info(`${this.loggerPrefix} Motivo: Desconhecido`)
+        await this.createSocketWhatsApp(name); // Reconectar...
         break;
     }
   }
