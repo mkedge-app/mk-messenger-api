@@ -1,45 +1,47 @@
-import express, { Express } from 'express';
+import express from "express";
+import http from "http";
+import WebSocket from "ws";
 import cors from 'cors';
-import http from 'http';
-import WebSocket from 'ws';
-import routes from './routes';
-import WebSocketServer from './modules/websocket/WebSocketServer';
-import WhatsAppSessionManager from './modules/whatsapp/WhatsAppSessionManager';
+import routes from "./routes"; // Importe as rotas do arquivo routes.ts
+import logger from './logger';
+import WebSocketServer from "./modules/websocket/WebSocketServer"; // Importe a classe WebSocketServer
+import WhatsAppSessionManager from "./modules/whatsapp/WhatsAppSessionManager";
 
-import './database';
-
-class App {
-  public app: Express;
-  public server: http.Server;
-  public wss: WebSocket.Server;
+class AppServer {
+  private app: express.Application;
+  private server: http.Server;
+  private wss: WebSocket.Server;
 
   constructor() {
     this.app = express();
     this.server = http.createServer(this.app);
     this.wss = new WebSocket.Server({ server: this.server });
 
-    this.middlewares();
-    this.routes();
-    this.setupWebSocket();
-    this.initSessions();
+    new WebSocketServer(this.wss); // Initialize WebSocketServer without storing it in a variable
+
+    this.setupMiddlewares();
+    this.setupRoutes();
   }
 
-  private middlewares(): void {
+  private setupMiddlewares(): void {
+    // Habilitar o middleware 'cors' para permitir solicitações de origens diferentes
     this.app.use(cors());
+
+    // Habilitar o middleware para analisar corpos de requisição JSON
     this.app.use(express.json());
   }
 
-  private routes(): void {
+  private setupRoutes(): void {
+    // Use as rotas definidas no arquivo routes.ts
     this.app.use(routes);
   }
 
-  private setupWebSocket(): void {
-    new WebSocketServer(this.wss);
-  }
-
-  private async initSessions(): Promise<void> {
-    await WhatsAppSessionManager.restoreSessions();
+  public start(port: number): void {
+    this.server.listen(port, async () => {
+      logger.info(`Servidor HTTP e WebSocket iniciado em http://localhost:${port}`);
+      await WhatsAppSessionManager.restoreSessions();
+    });
   }
 }
 
-export default new App().server;
+export default AppServer;
