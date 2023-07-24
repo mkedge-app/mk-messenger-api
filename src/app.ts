@@ -38,7 +38,7 @@ class AppServer {
 
   public start(port: number): void {
     this.server.listen(port, async () => {
-      logger.info(`Servidor HTTP e WebSocket iniciado em http://localhost:${port}`);
+      logger.info(`[AppServer]: Servidor HTTP iniciado em http://localhost:${port}`);
       await WhatsAppSessionManager.restoreSessions();
     });
   }
