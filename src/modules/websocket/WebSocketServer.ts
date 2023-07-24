@@ -45,7 +45,7 @@ class WebSocketServer {
     this.subscribeToConnectionEstablishedSubject();
 
     // Registra uma mensagem informativa de que o WebSocketServer foi inicializado
-    logger.info('WebSocketServer inicializado');
+    logger.info('[WebSocketServer]: Server inicializado');
   }
 
   // Configura o servidor WebSocket e define o callback para quando novas conexões são estabelecidas
