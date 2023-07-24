@@ -1,13 +1,5 @@
-/**
- * Arquivo de inicialização da aplicação
- *
- * Este arquivo é responsável por iniciar a aplicação, estabelecer a conexão com o banco de dados
- * e iniciar o servidor HTTP e WebSocket.
- */
-
 import dotenv from 'dotenv';
 import AppServer from './app';
-import Database from './database';
 import logger from './logger';
 
 dotenv.config(); // Carrega as variáveis de ambiente do arquivo .env
@@ -23,13 +15,9 @@ async function startApp() {
   }
 
   try {
-    // Conectar ao banco de dados
-    const database = new Database();
-    await database.connect();
-
     // Inicializar o servidor HTTP e WebSocket
     const appServer = new AppServer();
-    appServer.start(Number(port));
+    await appServer.start(Number(port));
   } catch (error: any) {
     // Tratar erros durante a inicialização
     logger.error(error.message);
