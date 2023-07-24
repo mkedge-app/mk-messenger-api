@@ -6,11 +6,17 @@ import WhatsAppSessionController from "./app/controllers/WhatsAppSessionControll
 import { authenticateTenant } from "./middlewares/authenticateTenant";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
+import MPNotificationController from "./app/controllers/MPNotificationController";
+import MercadoPagoController from "./app/controllers/MercadoPagoController";
 
 const routes = Router();
 
 // Rota de autenticação
 routes.post("/session", SessionController.create);
+
+// Rota para receber as notificações do Mercado Pago
+routes.post("/webhook", MPNotificationController.handleNotification);
+routes.get("/search/:planName", MercadoPagoController.show);
 
 // Aplicar middleware de autenticação
 routes.use(authenticateTenant);
