@@ -67,7 +67,7 @@ class AppServer {
     const certificatePath = process.env.HTTPS_CERTIFICATE_PATH;
 
     if (!privateKeyPath || !certificatePath) {
-      logger.error("As variáveis de ambiente HTTPS_PRIVATE_KEY_PATH e HTTPS_CERTIFICATE_PATH devem ser definidas em ambiente de produção.");
+      console.error("As variáveis de ambiente HTTPS_PRIVATE_KEY_PATH e HTTPS_CERTIFICATE_PATH devem ser definidas em ambiente de produção.");
       process.exit(1);
     }
 
@@ -80,7 +80,7 @@ class AppServer {
       this.server = https.createServer(httpsOptions, this.app);
       logger.info("[AppServer]: Servidor HTTPS configurado");
     } catch (error: any) {
-      logger.error(`[AppServer]: Erro ao configurar o servidor HTTPS: ${error.message}`);
+      console.error(`[AppServer]: Erro ao configurar o servidor HTTPS: ${error.message}`);
       process.exit(1);
     }
   }
