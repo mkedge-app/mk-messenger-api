@@ -4,52 +4,53 @@ import https from "https";
 import fs from "fs";
 import WebSocket from "ws";
 import cors from 'cors';
-import routes from "./routes"; // Importe as rotas do arquivo routes.ts
+import routes from "./routes";
 import logger from './logger';
-import WebSocketServer from "./modules/websocket/WebSocketServer"; // Importe a classe WebSocketServer
+import WebSocketServer from "./modules/websocket/WebSocketServer";
 import WhatsAppSessionManager from "./modules/whatsapp/WhatsAppSessionManager";
 import Database from "./database";
 
 class AppServer {
   private app: express.Application;
-  private server: http.Server | https.Server;
+  private server!: http.Server | https.Server;
   private wss: WebSocket.Server;
-  private database: Database; // Adicione este atributo
+  private database: Database;
 
   constructor() {
     this.app = express();
-    this.database = new Database(); // Inicialize a instância da classe Database
+    this.database = new Database();
 
-    // Verifica se está em ambiente de produção para escolher entre HTTP e HTTPS
-    if (process.env.NODE_ENV === "production") {
-      const privateKeyPath = process.env.HTTPS_PRIVATE_KEY_PATH;
-      const certificatePath = process.env.HTTPS_CERTIFICATE_PATH;
-
-      try {
-        if (!privateKeyPath || !certificatePath) {
-          throw new Error("As variáveis de ambiente HTTPS_PRIVATE_KEY_PATH e HTTPS_CERTIFICATE_PATH devem ser definidas em ambiente de produção.");
-        }
-
-        const httpsOptions = {
-          key: fs.readFileSync(privateKeyPath),
-          cert: fs.readFileSync(certificatePath),
-        };
-
-        this.server = https.createServer(httpsOptions, this.app);
-      } catch (error: any) {
-        logger.error(`[AppServer]: Erro ao configurar HTTPS: ${error.message}`);
-        process.exit(1);
-      }
-    } else {
-      this.server = http.createServer(this.app);
-    }
+    this.setupServer();
 
     this.wss = new WebSocket.Server({ server: this.server });
 
-    new WebSocketServer(this.wss); // Initialize WebSocketServer without storing it in a variable
+    new WebSocketServer(this.wss);
 
     this.setupMiddlewares();
     this.setupRoutes();
+  }
+
+  private setupServer(): void {
+    if (process.env.NODE_ENV === "development") {
+      const privateKeyPath = process.env.HTTPS_PRIVATE_KEY_PATH;
+      const certificatePath = process.env.HTTPS_CERTIFICATE_PATH;
+
+      if (!privateKeyPath || !certificatePath) {
+        logger.error("As variáveis de ambiente HTTPS_PRIVATE_KEY_PATH e HTTPS_CERTIFICATE_PATH devem ser definidas em ambiente de produção.");
+        process.exit(1);
+      }
+
+      const httpsOptions = {
+        key: fs.readFileSync(privateKeyPath),
+        cert: fs.readFileSync(certificatePath),
+      };
+
+      this.server = https.createServer(httpsOptions, this.app);
+      logger.info("[AppServer]: Servidor HTTPS configurado");
+    } else {
+      this.server = http.createServer(this.app);
+      logger.info("[AppServer]: Servidor HTTP configurado");
+    }
   }
 
   private setupMiddlewares(): void {
@@ -69,7 +70,8 @@ class AppServer {
     try {
       await this.database.connect(); // Conectar ao banco de dados
       this.server.listen(port, async () => {
-        logger.info(`[AppServer]: Servidor ${process.env.NODE_ENV === "production" ? "HTTPS" : "HTTP"} iniciado em http://localhost:${port}`);
+        logger.info(`[AppServer]: Servidor ${process.env.NODE_ENV === "production" ? "HTTPS" : "HTTP"} iniciado`);
+        logger.info(`[AppServer]: Servidor WebSocket iniciado`);
         await WhatsAppSessionManager.restoreSessions();
       });
     } catch (error: any) {
