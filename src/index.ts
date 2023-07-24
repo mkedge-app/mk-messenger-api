@@ -12,12 +12,6 @@ import logger from './logger';
 
 dotenv.config(); // Carrega as variáveis de ambiente do arquivo .env
 
-/**
- * Função de inicialização da aplicação
- *
- * Esta função é responsável por iniciar a aplicação, estabelecer a conexão com o banco de dados
- * e iniciar o servidor HTTP e WebSocket.
- */
 async function startApp() {
   // Obter a porta da variável de ambiente
   const port = process.env.PORT;
