@@ -44,10 +44,10 @@ class AppServer {
   }
 
   /**
- * Método privado para configurar o servidor HTTP/HTTPS com base nas variáveis de ambiente.
- * Se estiver em ambiente de produção, configura o servidor HTTPS com as chaves privadas e certificados fornecidos.
- * Caso contrário, configura o servidor HTTP padrão.
- */
+   * Método privado para configurar o servidor HTTP/HTTPS com base nas variáveis de ambiente.
+   * Se estiver em ambiente de produção, configura o servidor HTTPS com as chaves privadas e certificados fornecidos.
+   * Caso contrário, configura o servidor HTTP padrão.
+   */
   private setupServer(): void {
     if (process.env.NODE_ENV === "production") {
       this.setupHttpsServer();
@@ -57,11 +57,11 @@ class AppServer {
   }
 
   /**
- * Método privado para configurar o servidor HTTPS em ambiente de produção.
- * Verifica se as variáveis de ambiente HTTPS_PRIVATE_KEY_PATH e HTTPS_CERTIFICATE_PATH
- * estão definidas e cria o servidor HTTPS com as chaves privadas e certificados fornecidos.
- * Caso ocorra algum erro na configuração, registra o erro no log e encerra a aplicação.
- */
+   * Método privado para configurar o servidor HTTPS em ambiente de produção.
+   * Verifica se as variáveis de ambiente HTTPS_PRIVATE_KEY_PATH e HTTPS_CERTIFICATE_PATH
+   * estão definidas e cria o servidor HTTPS com as chaves privadas e certificados fornecidos.
+   * Caso ocorra algum erro na configuração, registra o erro no log e encerra a aplicação.
+   */
   private setupHttpsServer(): void {
     const privateKeyPath = process.env.HTTPS_PRIVATE_KEY_PATH;
     const certificatePath = process.env.HTTPS_CERTIFICATE_PATH;
