@@ -10,35 +10,18 @@ import WebSocketServer from "./modules/websocket/WebSocketServer";
 import WhatsAppSessionManager from "./modules/whatsapp/WhatsAppSessionManager";
 import Database from "./database";
 
-/**
- * Classe AppServer.
- *
- * Esta classe representa o servidor de aplicação que utiliza o framework Express.js para lidar
- * com requisições HTTP/HTTPS e WebSocket. O servidor é responsável por configurar e iniciar o
- * servidor HTTP ou HTTPS com base nas variáveis de ambiente, bem como configurar middlewares
- * e rotas para a aplicação.
- */
 class AppServer {
   private app: express.Application;
   private server!: http.Server | https.Server;
   private wss: WebSocket.Server;
   private database: Database;
 
-  /**
-   * Construtor da classe `AppServer`.
-   * Inicializa a aplicação, o WebSocket, a conexão com o banco de dados e configura o servidor HTTP/HTTPS
-   * com base no ambiente.
-   */
   constructor() {
     this.app = express();
-    this.database = new Database(); // Initialize the Database class
-
+    this.database = new Database();
     this.setupServer();
-
     this.wss = new WebSocket.Server({ server: this.server });
-
-    new WebSocketServer(this.wss); // Initialize WebSocketServer without storing it in a variable
-
+    new WebSocketServer(this.wss);
     this.setupMiddlewares();
     this.setupRoutes();
   }
