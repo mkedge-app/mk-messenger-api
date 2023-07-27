@@ -15,7 +15,7 @@ class App {
   private httpServer!: http.Server;
   private httpsServer!: https.Server;
   private httpWebSocketServer: WebSocket.Server;
-  private httpsWebSocketServer: WebSocket.Server;
+  private httpsWebSocketServer: WebSocket.Server | undefined;
   private database: Database;
 
   constructor() {
@@ -24,9 +24,7 @@ class App {
     this.setupHttpServer();
     this.setupHttpsServer();
     this.httpWebSocketServer = new WebSocket.Server({ server: this.httpServer });
-    this.httpsWebSocketServer = new WebSocket.Server({ server: this.httpsServer });
     new WebSocketServer(this.httpWebSocketServer);
-    new WebSocketServer(this.httpsWebSocketServer);
     this.setupMiddlewares();
     this.setupRoutes();
   }
@@ -36,8 +34,14 @@ class App {
    * Verifica se as variáveis de ambiente HTTPS_PRIVATE_KEY_PATH e HTTPS_CERTIFICATE_PATH
    * estão definidas e cria o servidor HTTPS com as chaves privadas e certificados fornecidos.
    * Caso ocorra algum erro na configuração, registra o erro no log e encerra a aplicação.
+   * Este método é modificado para be executed only in production.
    */
   private setupHttpsServer(): void {
+    if (process.env.NODE_ENV !== "production") {
+      logger.info("[AppServer]: Skipping HTTPS server setup in non-production environment.");
+      return;
+    }
+
     const privateKeyPath = process.env.HTTPS_PRIVATE_KEY_PATH;
     const certificatePath = process.env.HTTPS_CERTIFICATE_PATH;
 
@@ -52,8 +56,13 @@ class App {
     };
 
     try {
+      // Create the https server only in production
       this.httpsServer = https.createServer(httpsOptions, this.app);
       logger.info(`[AppServer]: HTTPS Server configured on port ${process.env.HTTPS_PORT}`);
+
+      // Create the WebSocket server for httpsServer
+      this.httpsWebSocketServer = new WebSocket.Server({ server: this.httpsServer });
+      new WebSocketServer(this.httpsWebSocketServer);
     } catch (error: any) {
       console.error(`[AppServer]: Error configuring HTTPS server: ${error.message}`);
       process.exit(1);
@@ -93,6 +102,7 @@ class App {
    * Aguarda a inicialização do servidor e restaura as sessões do WhatsApp.
    * Caso ocorra algum erro na inicialização, registra o erro no log e encerra a aplicação.
    * @param port O número da porta em que o servidor será iniciado.
+   * Este método is modificado to be executed only in production.
    */
   public async start(): Promise<void> {
     try {
@@ -105,11 +115,13 @@ class App {
         await WhatsAppSessionManager.restoreSessions();
       });
 
-      // Start HTTPS server on port process.env.HTTPS_PORT
-      this.httpsServer.listen(process.env.HTTPS_PORT, async () => {
-        logger.info(`[AppServer]: HTTPS Server started on port ${process.env.HTTPS_PORT}`);
-        logger.info("[AppServer]: WebSocket Server for HTTPS started");
-      });
+      // Start HTTPS server only in production
+      if (process.env.NODE_ENV === "production") {
+        this.httpsServer.listen(process.env.HTTPS_PORT, async () => {
+          logger.info(`[AppServer]: HTTPS Server started on port ${process.env.HTTPS_PORT}`);
+          logger.info("[AppServer]: WebSocket Server for HTTPS started");
+        });
+      }
     } catch (error: any) {
       logger.error(`[AppServer]: Failed to start the servers: ${error.message}`);
       process.exit(1); // Exit the application with an error code (1)
