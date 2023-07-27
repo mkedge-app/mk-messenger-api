@@ -27,6 +27,9 @@ class App {
     this.setupHttpsServer();
   }
 
+  /**
+   * Sets up the HTTP server and WebSocket server for HTTP.
+   */
   private setupHttpServer(): void {
     this.httpServer = http.createServer(this.app);
     this.httpWebSocketServer = new WebSocket.Server({ server: this.httpServer }); // Create WebSocket server for HTTP
@@ -34,6 +37,11 @@ class App {
     logger.info(`[AppServer]: HTTP Server configured on port ${process.env.HTTP_PORT}`);
   }
 
+  /**
+   * Sets up the HTTPS server and WebSocket server for HTTPS (production only).
+   * The server requires environment variables HTTPS_PRIVATE_KEY_PATH and HTTPS_CERTIFICATE_PATH to be defined.
+   * In non-production environments, HTTPS server setup is skipped.
+   */
   private setupHttpsServer(): void {
     if (process.env.NODE_ENV === "production") {
       const privateKeyPath = process.env.HTTPS_PRIVATE_KEY_PATH;
@@ -63,15 +71,28 @@ class App {
     }
   }
 
+  /**
+   * Sets up the middlewares for the Express app.
+   * Configures CORS and JSON body parser.
+   */
   private setupMiddlewares(): void {
     this.app.use(cors());
     this.app.use(express.json());
   }
 
+  /**
+   * Sets up the routes for the Express app.
+   * Uses the routes defined in the 'routes.ts' file.
+   */
   private setupRoutes(): void {
     this.app.use(routes);
   }
 
+  /**
+   * Starts the HTTP and HTTPS servers, connects to the database, and restores WhatsApp sessions.
+   * The HTTP server listens on the port specified in the environment variable HTTP_PORT.
+   * The HTTPS server (production only) listens on the port specified in the environment variable HTTPS_PORT.
+   */
   public async start(): Promise<void> {
     try {
       await this.database.connect();
