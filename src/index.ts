@@ -8,5 +8,4 @@ async function startApp() {
   await appServer.start();
 }
 
-// Iniciar a aplicação chamando a função startApp()
 startApp();
