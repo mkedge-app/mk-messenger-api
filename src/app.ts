@@ -10,33 +10,25 @@ import WebSocketServer from "./modules/websocket/WebSocketServer";
 import WhatsAppSessionManager from "./modules/whatsapp/WhatsAppSessionManager";
 import Database from "./database";
 
-class AppServer {
+class App {
   private app: express.Application;
-  private server!: http.Server | https.Server;
-  private wss: WebSocket.Server;
+  private httpServer!: http.Server;
+  private httpsServer!: https.Server;
+  private httpWebSocketServer: WebSocket.Server;
+  private httpsWebSocketServer: WebSocket.Server;
   private database: Database;
 
   constructor() {
     this.app = express();
     this.database = new Database();
-    this.setupServer();
-    this.wss = new WebSocket.Server({ server: this.server });
-    new WebSocketServer(this.wss);
+    this.setupHttpServer();
+    this.setupHttpsServer();
+    this.httpWebSocketServer = new WebSocket.Server({ server: this.httpServer });
+    this.httpsWebSocketServer = new WebSocket.Server({ server: this.httpsServer });
+    new WebSocketServer(this.httpWebSocketServer);
+    new WebSocketServer(this.httpsWebSocketServer);
     this.setupMiddlewares();
     this.setupRoutes();
-  }
-
-  /**
-   * Método privado para configurar o servidor HTTP/HTTPS com base nas variáveis de ambiente.
-   * Se estiver em ambiente de produção, configura o servidor HTTPS com as chaves privadas e certificados fornecidos.
-   * Caso contrário, configura o servidor HTTP padrão.
-   */
-  private setupServer(): void {
-    if (process.env.NODE_ENV === "production") {
-      this.setupHttpsServer();
-    } else {
-      this.setupHttpServer();
-    }
   }
 
   /**
@@ -50,7 +42,7 @@ class AppServer {
     const certificatePath = process.env.HTTPS_CERTIFICATE_PATH;
 
     if (!privateKeyPath || !certificatePath) {
-      console.error("As variáveis de ambiente HTTPS_PRIVATE_KEY_PATH e HTTPS_CERTIFICATE_PATH devem ser definidas em ambiente de produção.");
+      console.error("The environment variables HTTPS_PRIVATE_KEY_PATH and HTTPS_CERTIFICATE_PATH must be defined in production environment.");
       process.exit(1);
     }
 
@@ -60,10 +52,10 @@ class AppServer {
     };
 
     try {
-      this.server = https.createServer(httpsOptions, this.app);
-      logger.info("[AppServer]: Servidor HTTPS configurado");
+      this.httpsServer = https.createServer(httpsOptions, this.app);
+      logger.info(`[AppServer]: HTTPS Server configured on port ${process.env.HTTPS_PORT}`);
     } catch (error: any) {
-      console.error(`[AppServer]: Erro ao configurar o servidor HTTPS: ${error.message}`);
+      console.error(`[AppServer]: Error configuring HTTPS server: ${error.message}`);
       process.exit(1);
     }
   }
@@ -73,8 +65,8 @@ class AppServer {
    * Cria o servidor HTTP padrão.
    */
   private setupHttpServer(): void {
-    this.server = http.createServer(this.app);
-    logger.info("[AppServer]: Servidor HTTP configurado");
+    this.httpServer = http.createServer(this.app);
+    logger.info(`[AppServer]: HTTP Server configured on port ${process.env.HTTP_PORT}`);
   }
 
   /**
@@ -102,19 +94,27 @@ class AppServer {
    * Caso ocorra algum erro na inicialização, registra o erro no log e encerra a aplicação.
    * @param port O número da porta em que o servidor será iniciado.
    */
-  public async start(port: number): Promise<void> {
+  public async start(): Promise<void> {
     try {
-      await this.database.connect(); // Conectar ao banco de dados
-      this.server.listen(port, async () => {
-        logger.info(`[AppServer]: Servidor ${process.env.NODE_ENV === "production" ? "HTTPS" : "HTTP"} iniciado`);
-        logger.info(`[AppServer]: Servidor WebSocket iniciado`);
+      await this.database.connect(); // Connect to the database
+
+      // Start HTTP server on port process.env.HTTP_PORT
+      this.httpServer.listen(process.env.HTTP_PORT, async () => {
+        logger.info(`[AppServer]: HTTP Server started on port ${process.env.HTTP_PORT}`);
+        logger.info("[AppServer]: WebSocket Server for HTTP started");
         await WhatsAppSessionManager.restoreSessions();
       });
+
+      // Start HTTPS server on port process.env.HTTPS_PORT
+      this.httpsServer.listen(process.env.HTTPS_PORT, async () => {
+        logger.info(`[AppServer]: HTTPS Server started on port ${process.env.HTTPS_PORT}`);
+        logger.info("[AppServer]: WebSocket Server for HTTPS started");
+      });
     } catch (error: any) {
-      logger.error(`[AppServer]: Falha ao iniciar o servidor: ${error.message}`);
-      process.exit(1); // Encerra a aplicação com código de erro (1)
+      logger.error(`[AppServer]: Failed to start the servers: ${error.message}`);
+      process.exit(1); // Exit the application with an error code (1)
     }
   }
 }
 
-export default AppServer;
+export default App;
