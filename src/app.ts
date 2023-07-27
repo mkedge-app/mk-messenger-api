@@ -94,6 +94,12 @@ class App {
    * The HTTPS server (production only) listens on the port specified in the environment variable HTTPS_PORT.
    */
   public async start(): Promise<void> {
+    // Check if HTTP_PORT and HTTPS_PORT are defined
+    if (!process.env.HTTP_PORT || !process.env.HTTPS_PORT) {
+      console.error("[AppServer]: Environment variables HTTP_PORT and HTTPS_PORT must be defined.");
+      process.exit(1);
+    }
+  
     try {
       await this.database.connect();
       this.httpServer.listen(process.env.HTTP_PORT, async () => {
@@ -101,7 +107,7 @@ class App {
         logger.info("[AppServer]: WebSocket Server for HTTP started");
         await WhatsAppSessionManager.restoreSessions();
       });
-
+  
       if (process.env.NODE_ENV === "production" && this.httpsWebSocketServer) {
         this.https.listen(process.env.HTTPS_PORT, async () => {
           logger.info(`[AppServer]: HTTPS Server started on port ${process.env.HTTPS_PORT}`);
