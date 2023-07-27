@@ -14,8 +14,8 @@ class App {
   private app: express.Application;
   private httpServer!: http.Server;
   private https!: https.Server;
-  private httpWebSocketServer!: WebSocket.Server; // Declare without initializer
-  private httpsWebSocketServer?: WebSocket.Server; // Declare without initializer
+  private httpWebSocketServer!: WebSocket.Server;
+  private httpsWebSocketServer?: WebSocket.Server;
   private database: Database;
 
   constructor() {
