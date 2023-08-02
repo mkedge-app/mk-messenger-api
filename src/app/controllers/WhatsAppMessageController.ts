@@ -18,7 +18,7 @@ class WhatsAppMessageController {
       const cleanedText = typeof text === 'string' ? text.replace(/[\r\n]/g, '') : '';
 
       // Enviar a mensagem usando o WhatsAppSessionManager
-      const sentMessage = await WhatsAppSessionManager.sendTextMessage(name, to, cleanedText);
+      const sentMessage = await WhatsAppSessionManager.sendTextMessage(name, to, text);
 
       // Verificar se a mensagem foi enviada com sucesso
       if (sentMessage && sentMessage.key && typeof sentMessage.key.id === 'string') {
