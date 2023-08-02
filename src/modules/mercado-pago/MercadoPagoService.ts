@@ -14,19 +14,54 @@ class MercadoPagoService {
     }
   }
 
-  async searchPreapprovalsByPlanName(planName: string) {
-    const apiUrl = `https://api.mercadopago.com/preapproval/search?q=${planName}`;
+  async consultarDadosDaAssinatura(idAssinatura: string) {
+    const apiUrl = `https://api.mercadopago.com/preapproval/${idAssinatura}`;
     const headers = {
       Authorization: `Bearer ${this.accessToken}`,
     };
 
     try {
       const response = await axios.get(apiUrl, { headers });
-      console.log('Response:', response.data);
+      console.log('Informações da assinatura:', response.data);
       // Aqui você pode tratar os dados da resposta conforme necessário
-      return response;
+      return response.data;
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Erro ao consultar dados da assinatura:', error);
+      throw error;
+    }
+  }
+
+  async consultarDadosDaFatura(idFatura: string) {
+    const apiUrl = `https://api.mercadopago.com/authorized_payments/${idFatura}`;
+    const headers = {
+      Authorization: `Bearer ${this.accessToken}`,
+    };
+
+    try {
+      const response = await axios.get(apiUrl, { headers });
+      console.log('Informações da fatura:', response.data);
+      // Aqui você pode tratar os dados da resposta conforme necessário
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao consultar dados da fatura:', error);
+      throw error;
+    }
+  }
+
+  async consultarDadosDoPagamento(idPagamento: string) {
+    const apiUrl = `https://api.mercadopago.com/v1/payments/${idPagamento}`;
+    const headers = {
+      Authorization: `Bearer ${this.accessToken}`,
+    };
+
+    try {
+      const response = await axios.get(apiUrl, { headers });
+      console.log('Informações do pagamento:', response.data);
+      // Aqui você pode tratar os dados da resposta conforme necessário
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao consultar dados do pagamento:', error);
+      throw error;
     }
   }
 }
