@@ -2,12 +2,11 @@ import { Router } from "express";
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
+import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
+import WebhookController from "./app/controllers/mercado-pago/WebhookController";
 
 import { authenticateTenant } from "./middlewares/authenticateTenant";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
-import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
-import MPNotificationController from "./app/controllers/MPNotificationController";
-import MercadoPagoController from "./app/controllers/MercadoPagoController";
 
 const routes = Router();
 
@@ -15,8 +14,7 @@ const routes = Router();
 routes.post("/session", SessionController.create);
 
 // Rota para receber as notificações do Mercado Pago
-routes.post("/webhook", MPNotificationController.handleNotification);
-routes.get("/search/:planName", MercadoPagoController.show);
+routes.post("/mercadopago/webhook", WebhookController.handleNotification);
 
 // Aplicar middleware de autenticação
 routes.use(authenticateTenant);
