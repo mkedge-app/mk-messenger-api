@@ -1,6 +1,7 @@
 // src/controllers/MPNotificationController.ts
 import { Request, Response } from "express";
 import MercadoPagoService from "../../../modules/mercado-pago/MercadoPagoService";
+import Subscription from "../../models/Subscription";
 
 export class WebhookController {
   public async handleNotification(req: Request, res: Response): Promise<void> {
@@ -18,7 +19,11 @@ export class WebhookController {
           // Consulte informações da assinatura usando o ID da assinatura
           const idAssinatura = eventData.data.id;
           const infoAssinatura = await MercadoPagoService.consultarDadosDaAssinatura(idAssinatura);
-          console.log("Informações da assinatura:", infoAssinatura);
+          await Subscription.findOneAndUpdate(
+            { id: infoAssinatura.id },
+            infoAssinatura,
+            { upsert: true, new: true }
+          );
           break;
         case 'subscription_authorized_payment':
           // Consulte informações da fatura usando o ID da fatura
