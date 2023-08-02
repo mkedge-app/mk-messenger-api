@@ -124,6 +124,7 @@ class WhatsAppSocketManager {
         break;
       case DisconnectReason.connectionLost:
         logger.info(`${this.loggerPrefix} Motivo: Conexão perdida`);
+        await this.createSocketWhatsApp(name); // Reconectar...
         break;
       case DisconnectReason.connectionReplaced:
         logger.info(`${this.loggerPrefix} Motivo: connectionReplaced`);
