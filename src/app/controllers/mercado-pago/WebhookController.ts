@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import MercadoPagoService from "../../../modules/mercado-pago/MercadoPagoService";
 import Subscription from "../../models/Subscription";
+import Fatura from "../../models/Fatura";
 
 export class WebhookController {
   public async handleNotification(req: Request, res: Response): Promise<void> {
@@ -29,7 +30,11 @@ export class WebhookController {
           // Consulte informações da fatura usando o ID da fatura
           const idFatura = eventData.data.id;
           const infoFatura = await MercadoPagoService.consultarDadosDaFatura(idFatura);
-          console.log("Informações da fatura:", infoFatura);
+          await Fatura.findOneAndUpdate(
+            { id: infoFatura.id },
+            infoFatura,
+            { upsert: true, new: true }
+          );
           break;
         case 'payment':
           // Consulte informações do pagamento usando o ID do pagamento
