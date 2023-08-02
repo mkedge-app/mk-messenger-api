@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import MercadoPagoService from "../../../modules/mercado-pago/MercadoPagoService";
 import Subscription from "../../models/Subscription";
 import Fatura from "../../models/Fatura";
+import Payment from "../../models/Payment";
 
 export class WebhookController {
   public async handleNotification(req: Request, res: Response): Promise<void> {
@@ -41,6 +42,11 @@ export class WebhookController {
           const idPagamento = eventData.data.id;
           const infoPagamento = await MercadoPagoService.consultarDadosDoPagamento(idPagamento);
           console.log("Informações do pagamento:", infoPagamento);
+          await Payment.findOneAndUpdate(
+            { id: infoPagamento.id },
+            infoPagamento,
+            { upsert: true, new: true }
+          );
           break;
         default:
           console.log("Tipo de evento não reconhecido:", eventData.type);
