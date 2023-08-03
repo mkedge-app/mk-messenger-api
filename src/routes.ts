@@ -2,15 +2,18 @@ import { Router } from "express";
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
-
-import { authenticateTenant } from "./middlewares/authenticateTenant";
-import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
+
+import { authenticateUser } from "./middlewares/authenticateUser";
+import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
 
 const routes = Router();
 
 // Rota de autenticação
 routes.post("/session", SessionController.create);
+
+// Aplicar middleware de autenticação
+routes.use(authenticateUser);
 
 // Rotas dos tenants
 routes.get("/tenants", TenantController.index);
