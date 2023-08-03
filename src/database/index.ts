@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import logger from '../logger';
 import bcrypt from 'bcrypt';
-import AdminUserModel from '../app/models/AdminUser';
+import User from '../app/models/User';
 
 import MONGO_DB_URL from '../config/mongodb';
 
@@ -35,18 +35,20 @@ class Database {
    */
   private async ensureDefaultAdminUser(): Promise<void> {
     try {
-      const adminUser = await AdminUserModel.findOne({ username: process.env.DEFAULT_ADMIN_USERNAME });
+      const adminUser = await User.findOne({ username: process.env.DEFAULT_ADMIN_USERNAME });
 
       if (!adminUser) {
         const plainPassword = process.env.DEFAULT_ADMIN_PASSWORD;
         if (plainPassword) {
           const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-          await AdminUserModel.create({
+          await User.create({
+            name: 'Admin User', // Nome do usuário administrador
+            contactPhone: '1234567890',
+            contactEmail: 'admin@example.com',
             username: process.env.DEFAULT_ADMIN_USERNAME,
-            password_hash: hashedPassword,
-            email: 'admin@example.com',
-            role: 'admin'
+            passwordHash: hashedPassword,
+            userType: 'admin',
           });
 
           logger.info('Default admin user created successfully.');
