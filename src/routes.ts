@@ -12,9 +12,6 @@ const routes = Router();
 // Rota de autenticação
 routes.post("/session", SessionController.create);
 
-// Aplicar middleware de autenticação
-routes.use(authenticateTenant);
-
 // Rotas dos tenants
 routes.get("/tenants", TenantController.index);
 routes.post("/tenants", TenantController.create);
@@ -26,9 +23,6 @@ routes.get("/whatsapp/sessions", WhatsAppSessionController.index);
 routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
 routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
 routes.patch("/whatsapp/sessions/:name", WhatsAppSessionController.update);
-
-// Aplicar middleware de verificação de status
-routes.use(tenantStatusCheck);
 
 // Rota para envio de mensagens
 routes.post("/whatsapp/sessions/:name/message", WhatsAppMessageController.create);
