@@ -99,15 +99,15 @@ class App {
       console.error("[AppServer]: Environment variables HTTP_PORT and HTTPS_PORT must be defined.");
       process.exit(1);
     }
-  
+
     try {
-      await this.database.connect();
+      await this.database.connectAndCreateDefaultAdminUser();
       this.httpServer.listen(process.env.HTTP_PORT, async () => {
         logger.info(`[AppServer]: HTTP Server started on port ${process.env.HTTP_PORT}`);
         logger.info("[AppServer]: WebSocket Server for HTTP started");
         await WhatsAppSessionManager.restoreSessions();
       });
-  
+
       if (process.env.NODE_ENV === "production" && this.httpsWebSocketServer) {
         this.https.listen(process.env.HTTPS_PORT, async () => {
           logger.info(`[AppServer]: HTTPS Server started on port ${process.env.HTTPS_PORT}`);
