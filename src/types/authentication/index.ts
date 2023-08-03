@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 
 export interface AuthenticatedRequest extends Request {
-  tenantId?: string;
-  isTenantActive?: boolean;
+  userId?: string;
+  userType?: string;
 }
 
 export interface DecodedToken {
-  tenantId: string;
-  isTenantActive: boolean;
+  userId: string;
+  userType: string;
 }
 
 export type AuthenticateTenantResponse = Response<Record<string, any>> | void;
