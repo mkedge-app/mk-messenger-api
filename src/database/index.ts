@@ -8,8 +8,12 @@ import MONGO_DB_URL from '../config/mongodb';
 class Database {
   constructor() {}
 
+  /**
+   * Conecta ao banco de dados MongoDB e cria o usuário administrador padrão, se não existir.
+   * @throws Um erro é lançado se houver problemas de conexão com o banco de dados.
+   */
   async connectAndCreateDefaultAdminUser(): Promise<void> {
-    logger.info('[Database]: Connecting to MongoDB...');
+    logger.info('[Database] Connecting to MongoDB...');
 
     try {
       await mongoose.connect(MONGO_DB_URL, {
@@ -17,21 +21,25 @@ class Database {
         socketTimeoutMS: 30000, // Timeout das operações de soquete (30 segundos)
       });
 
-      logger.info('[Database]: Connected to MongoDB successfully');
-      await this.createDefaultAdminUser();
+      logger.info('[Database] Connected to MongoDB successfully');
+      await this.ensureDefaultAdminUser();
     } catch (error: any) {
-      logger.error(`[Database]: Connection Error: ${error.message}`);
+      const errorMessage = `[Database] Connection Error: ${error.message}`;
+      logger.error(errorMessage);
       throw new Error('Failed to connect to the database. Check the database connection settings.');
     }
   }
 
-  private async createDefaultAdminUser(): Promise<void> {
+  /**
+   * Garante que o usuário administrador padrão exista no banco de dados.
+   */
+  private async ensureDefaultAdminUser(): Promise<void> {
     try {
       const adminUser = await AdminUserModel.findOne({ username: process.env.DEFAULT_ADMIN_USERNAME });
 
       if (!adminUser) {
         const plainPassword = process.env.DEFAULT_ADMIN_PASSWORD;
-        if (plainPassword) { // Verifique se plainPassword não é undefined
+        if (plainPassword) {
           const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
           await AdminUserModel.create({
@@ -47,7 +55,8 @@ class Database {
         }
       }
     } catch (error: any) {
-      logger.error(`Error creating default admin user: ${error.message}`);
+      const errorMessage = `Error creating default admin user: ${error.message}`;
+      logger.error(errorMessage);
     }
   }
 }
