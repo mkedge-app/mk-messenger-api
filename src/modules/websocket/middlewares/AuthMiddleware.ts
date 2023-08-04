@@ -1,5 +1,4 @@
 import TokenValidator from "../validators/TokenValidator";
-import { IncomingMessage } from 'http';
 
 class AuthMiddleware {
   private tokenValidator: TokenValidator;
@@ -8,16 +7,19 @@ class AuthMiddleware {
     this.tokenValidator = new TokenValidator();
   }
 
-  public handleConnection(token: string, callback: (authenticated: boolean, tenantId?: string) => void): void {
+  public handleConnection(
+    token: string,
+    callback: (authenticated: boolean, userId?: string) => void
+  ): void {
     if (!token) {
       callback(false);
       return;
     }
 
     const authenticated = this.tokenValidator.validateToken(token);
-    const tenantId = this.tokenValidator.extractTenantId(token);
+    const userId = this.tokenValidator.extractUserId(token);
 
-    callback(authenticated, tenantId);
+    callback(authenticated, userId);
   }
 }
 
