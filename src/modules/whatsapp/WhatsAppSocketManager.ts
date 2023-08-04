@@ -1,10 +1,11 @@
-import makeWASocket, { ConnectionState, DisconnectReason, WAProto, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import makeWASocket, { ConnectionState, DisconnectReason, WAMessageUpdate, WAProto, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
 import fs from 'fs-extra';
 import path from 'path';
 import logger from '../../logger';
 import { Boom } from '@hapi/boom';
 import FileUtils from '../../services/FileUtils';
+import MessageLogService from '../../services/MessageLogService';
 
 type WASocket = ReturnType<typeof makeWASocket> | undefined;
 
@@ -46,6 +47,11 @@ class WhatsAppSocketManager {
         this.handleConnectionUpdate({ name, update });
       });
 
+      // Monitorar eventos 'messages.update'
+      socketWhatsApp.ev.on('messages.update', async (updates: WAMessageUpdate[]) => {
+        await this.handleMessageUpdates(updates);
+      });
+
       this.sockets.set(name, socketWhatsApp);
 
       resolve();
@@ -75,6 +81,24 @@ class WhatsAppSocketManager {
     if (subject) { subject.next(update) }
   }
 
+  private async handleMessageUpdates(updates: WAMessageUpdate[]): Promise<void> {
+    for (const update of updates) {
+      // Verificar se o evento de atualização contém o campo 'status'
+      if (update.update?.status) {
+        try {
+          // Certificar-se de que remoteJid e id sejam sempre strings válidas usando o operador de coalescência nula (??)
+          const remoteJid = update.key.remoteJid ?? '';
+          const id = update.key.id ?? '';
+          const messageKey = { remoteJid, id };
+          const updateData = { status: update.update.status };
+          await MessageLogService.updateMessageStatus(messageKey, updateData);
+        } catch (error) {
+          logger.error(`${this.loggerPrefix}: Erro ao atualizar status da mensagem no banco de dedados`, error);
+        }
+      }
+    }
+  }
+
   /**
    * Lida com o fechamento da conexão do socket do WhatsApp e executa a lógica correspondente com base no código de status.
    * @param name O nome da conexão do socket do WhatsApp.
@@ -100,6 +124,7 @@ class WhatsAppSocketManager {
         break;
       case DisconnectReason.connectionLost:
         logger.info(`${this.loggerPrefix} Motivo: Conexão perdida`);
+        await this.createSocketWhatsApp(name); // Reconectar...
         break;
       case DisconnectReason.connectionReplaced:
         logger.info(`${this.loggerPrefix} Motivo: connectionReplaced`);
@@ -111,6 +136,8 @@ class WhatsAppSocketManager {
         logger.info(`${this.loggerPrefix} Motivo: timedOut`);
         break;
       default:
+        logger.info(`${this.loggerPrefix} Motivo: Desconhecido`)
+        await this.createSocketWhatsApp(name); // Reconectar...
         break;
     }
   }
@@ -215,7 +242,7 @@ class WhatsAppSocketManager {
   public async sendTextMessage(name: string, to: string, text: string): Promise<WAProto.WebMessageInfo | undefined> {
     logger.info(`[WhatsAppSessionManager] Enviando mensagem de texto de ${name} para ${to}: ${text}`);
     const WASocket = this.getSocketByName(name);
-  
+
     if (WASocket) {
       const id = `${to}@s.whatsapp.net`;
       logger.debug(`[WhatsAppSessionManager] Enviando mensagem via socket de ${name}: ${text}`);

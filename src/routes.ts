@@ -1,11 +1,12 @@
 import { Router } from "express";
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
+import MessageLogController from "./app/controllers/MessageLogController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
+import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
 
 import { authenticateTenant } from "./middlewares/authenticateTenant";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
-import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
 
 const routes = Router();
 
@@ -26,6 +27,10 @@ routes.get("/whatsapp/sessions", WhatsAppSessionController.index);
 routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
 routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
 routes.patch("/whatsapp/sessions/:name", WhatsAppSessionController.update);
+
+// Rota para interação com o log de mensagens enviadas
+routes.get("/messages", MessageLogController.index);
+routes.get("/messages/:requester", MessageLogController.show);
 
 // Aplicar middleware de verificação de status
 routes.use(tenantStatusCheck);
