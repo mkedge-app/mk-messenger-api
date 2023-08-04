@@ -30,7 +30,7 @@ routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
 routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
 
 // Rota para interação com o log de mensagens enviadas
-routes.get("/messages", MessageLogController.index);
+routes.get("/messages", isAdminMiddleware, MessageLogController.index);
 routes.get("/messages/:requester", MessageLogController.show);
 
 // Rota para envio de mensagens
