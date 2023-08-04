@@ -1,6 +1,7 @@
 import { Router } from "express";
 import SessionController from "./app/controllers/SessionController";
 import TenantController from "./app/controllers/TenantController";
+import MessageLogController from "./app/controllers/MessageLogController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
 
@@ -27,6 +28,10 @@ routes.delete("/tenants/:id", isAdminMiddleware, TenantController.delete);
 routes.get("/whatsapp/sessions", isAdminMiddleware, WhatsAppSessionController.index);
 routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
 routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
+
+// Rota para interação com o log de mensagens enviadas
+routes.get("/messages", MessageLogController.index);
+routes.get("/messages/:requester", MessageLogController.show);
 
 // Rota para envio de mensagens
 routes.post(
