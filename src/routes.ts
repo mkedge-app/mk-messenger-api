@@ -24,10 +24,9 @@ routes.get("/tenants/:id", TenantController.show);
 routes.delete("/tenants/:id", isAdminMiddleware, TenantController.delete);
 
 // Rotas de interação com o gerenciador de sessões WhatsApp
-routes.get("/whatsapp/sessions", WhatsAppSessionController.index);
+routes.get("/whatsapp/sessions", isAdminMiddleware, WhatsAppSessionController.index);
 routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
 routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
-routes.patch("/whatsapp/sessions/:name", WhatsAppSessionController.update);
 
 // Rota para envio de mensagens
 routes.post("/whatsapp/sessions/:name/message", isTenantMiddleware, WhatsAppMessageController.create);
