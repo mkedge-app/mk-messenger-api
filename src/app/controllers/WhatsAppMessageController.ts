@@ -24,8 +24,8 @@ class WhatsAppMessageController {
       if (sentMessage && sentMessage.key && typeof sentMessage.key.id === 'string') {
         const request = req as AuthenticatedRequest;
 
-        // Certificar-se de que request.tenantId é uma string usando o operador de coalescência nula (??)
-        const requester = request.tenantId ?? "";
+        // Certificar-se de que request.userId é uma string usando o operador de coalescência nula (??)
+        const requester = request.userId ?? "";
 
         // Criar e salvar o log da mensagem no banco de dados usando o serviço MessageLogService
         const newMessageLog = await MessageLogService.createMessageLog(
