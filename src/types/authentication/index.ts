@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request } from "express";
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -9,5 +9,3 @@ export interface DecodedToken {
   userId: string;
   userType: string;
 }
-
-export type AuthenticateTenantResponse = Response<Record<string, any>> | void;
