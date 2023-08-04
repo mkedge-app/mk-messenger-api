@@ -6,6 +6,8 @@ import WhatsAppMessageController from "./app/controllers/WhatsAppMessageControll
 
 import { authenticateUser } from "./middlewares/authenticateUser";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
+import { isAdminMiddleware } from "./middlewares/isAdminMiddleware";
+import { isTenantMiddleware } from "./middlewares/isTenantMiddleware";
 
 const routes = Router();
 
@@ -16,10 +18,10 @@ routes.post("/session", SessionController.create);
 routes.use(authenticateUser);
 
 // Rotas dos tenants
-routes.get("/tenants", TenantController.index);
-routes.post("/tenants", TenantController.create);
+routes.get("/tenants", isAdminMiddleware, TenantController.index);
+routes.post("/tenants", isAdminMiddleware, TenantController.create);
 routes.get("/tenants/:id", TenantController.show);
-routes.delete("/tenants/:id", TenantController.delete);
+routes.delete("/tenants/:id", isAdminMiddleware, TenantController.delete);
 
 // Rotas de interação com o gerenciador de sessões WhatsApp
 routes.get("/whatsapp/sessions", WhatsAppSessionController.index);
@@ -28,6 +30,6 @@ routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
 routes.patch("/whatsapp/sessions/:name", WhatsAppSessionController.update);
 
 // Rota para envio de mensagens
-routes.post("/whatsapp/sessions/:name/message", WhatsAppMessageController.create);
+routes.post("/whatsapp/sessions/:name/message", isTenantMiddleware, WhatsAppMessageController.create);
 
 export default routes;
