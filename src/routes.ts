@@ -1,4 +1,5 @@
 import { Router } from "express";
+import UserController from "./app/controllers/UserController";
 import SessionController from "./app/controllers/SessionController";
 import MessageLogController from "./app/controllers/MessageLogController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
@@ -8,7 +9,6 @@ import { authenticateUser } from "./middlewares/authenticateUser";
 import { isAdminMiddleware } from "./middlewares/isAdminMiddleware";
 import { isTenantMiddleware } from "./middlewares/isTenantMiddleware";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
-import UserController from "./app/controllers/UserController";
 
 const routes = Router();
 
