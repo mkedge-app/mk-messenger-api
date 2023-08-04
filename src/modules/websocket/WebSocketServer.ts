@@ -55,13 +55,13 @@ class WebSocketServer {
         const { token } = JSON.parse(message);
 
         // Middleware de autenticação
-        this.authMiddleware.handleConnection(token, (authenticated: boolean, tenantId?: string) => {
+        this.authMiddleware.handleConnection(token, (authenticated: boolean, userId?: string) => {
           if (authenticated) {
-            if (tenantId) {
+            if (userId) {
               // Lidar com a conexão autenticada
-              this.handleAuthenticatedConnection(ws, tenantId);
+              this.handleAuthenticatedConnection(ws, userId);
             } else {
-              this.handleMissingTenantId(ws);
+              this.handleMissingUserId(ws);
             }
           } else {
             // Lidar com a conexão não autorizada
@@ -73,16 +73,16 @@ class WebSocketServer {
   }
 
   // Trata uma conexão autenticada
-  private async handleAuthenticatedConnection(ws: WebSocket, tenantId: string): Promise<void> {
-    // Adicionar a conexão ativa ao objeto de conexões usando o tenantId como chave
-    this.activeConnections[tenantId] = ws;
+  private async handleAuthenticatedConnection(ws: WebSocket, userId: string): Promise<void> {
+    // Adicionar a conexão ativa ao objeto de conexões usando o userId como chave
+    this.activeConnections[userId] = ws;
 
     // Enviar mensagem de sucesso para o cliente
     this.webSocketDataSender.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
 
     // Informar o WhatsAppSessionManager sobre a nova conexão em busca de QR code
     try {
-      await WhatsAppSessionManager.initializeSession(tenantId);
+      await WhatsAppSessionManager.initializeSession(userId);
     } catch (error: any) {
       this.webSocketDataSender.sendErrorMessage(ws, error.message);
       ws.close();
@@ -91,15 +91,15 @@ class WebSocketServer {
     // Define um callback para quando a conexão é fechada pelo cliente
     ws.on('close', () => {
       // Remover a conexão fechada do objeto de conexões
-      if (tenantId) {
-        delete this.activeConnections[tenantId];
-        WhatsAppSessionManager.handleWSClientDisconnection(tenantId);
+      if (userId) {
+        delete this.activeConnections[userId];
+        WhatsAppSessionManager.handleWSClientDisconnection(userId);
       }
     });
   }
 
   // Trata uma conexão que não fornece o ID do tenant
-  private handleMissingTenantId(ws: WebSocket): void {
+  private handleMissingUserId(ws: WebSocket): void {
     // Enviar mensagem de erro para o cliente
     this.webSocketDataSender.sendErrorMessage(ws, 'ID do tenant não fornecido');
     // Fechar a conexão
