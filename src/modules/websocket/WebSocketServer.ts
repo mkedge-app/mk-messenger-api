@@ -98,10 +98,10 @@ class WebSocketServer {
     });
   }
 
-  // Trata uma conexão que não fornece o ID do tenant
+  // Trata uma conexão que não fornece o ID do user
   private handleMissingUserId(ws: WebSocket): void {
     // Enviar mensagem de erro para o cliente
-    this.webSocketDataSender.sendErrorMessage(ws, 'ID do tenant não fornecido');
+    this.webSocketDataSender.sendErrorMessage(ws, 'ID do user não fornecido');
     // Fechar a conexão
     ws.close();
   }
