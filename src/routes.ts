@@ -9,6 +9,7 @@ import { authenticateUser } from "./middlewares/authenticateUser";
 import { isAdminMiddleware } from "./middlewares/isAdminMiddleware";
 import { isTenantMiddleware } from "./middlewares/isTenantMiddleware";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
+import UserController from "./app/controllers/UserController";
 
 const routes = Router();
 
@@ -19,10 +20,10 @@ routes.post("/session", SessionController.create);
 routes.use(authenticateUser);
 
 // Rotas dos tenants
-routes.get("/tenants", isAdminMiddleware, TenantController.index);
-routes.post("/tenants", isAdminMiddleware, TenantController.create);
-routes.get("/tenants/:id", TenantController.show);
-routes.delete("/tenants/:id", isAdminMiddleware, TenantController.delete);
+routes.get("/user", isAdminMiddleware, UserController.index);
+routes.post("/user", isAdminMiddleware, UserController.create);
+routes.get("/user/:id", UserController.show);
+routes.delete("/user/:id", isAdminMiddleware, UserController.delete);
 
 // Rotas de interação com o gerenciador de sessões WhatsApp
 routes.get("/whatsapp/sessions", isAdminMiddleware, WhatsAppSessionController.index);
