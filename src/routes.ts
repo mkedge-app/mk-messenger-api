@@ -5,9 +5,9 @@ import WhatsAppSessionController from "./app/controllers/WhatsAppSessionControll
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
 
 import { authenticateUser } from "./middlewares/authenticateUser";
-import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
 import { isAdminMiddleware } from "./middlewares/isAdminMiddleware";
 import { isTenantMiddleware } from "./middlewares/isTenantMiddleware";
+import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
 
 const routes = Router();
 
@@ -29,6 +29,11 @@ routes.get("/whatsapp/sessions/:name", WhatsAppSessionController.show);
 routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
 
 // Rota para envio de mensagens
-routes.post("/whatsapp/sessions/:name/message", isTenantMiddleware, WhatsAppMessageController.create);
+routes.post(
+  "/whatsapp/sessions/:name/message",
+  isTenantMiddleware,
+  tenantStatusCheck,
+  WhatsAppMessageController.create
+);
 
 export default routes;
