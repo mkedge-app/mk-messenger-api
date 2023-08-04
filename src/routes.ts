@@ -19,7 +19,7 @@ routes.post("/session", SessionController.create);
 // Aplicar middleware de autenticação
 routes.use(authenticateUser);
 
-// Rotas dos tenants
+// Rotas dos usuarios
 routes.get("/user", isAdminMiddleware, UserController.index);
 routes.post("/user", isAdminMiddleware, UserController.create);
 routes.get("/user/:id", UserController.show);
