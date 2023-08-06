@@ -14,6 +14,10 @@ class SetSubscriptionController {
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
 
+      if (user.userType !== 'tenant') {
+        return res.status(400).json({ error: 'Apenas tenants podem ter assinaturas' });
+      }
+
       // Verificar se a assinatura existe
       const subscription = await Subscription.findById(subscriptionId);
       if (!subscription) {
