@@ -5,7 +5,7 @@ class TokenValidator {
     try {
       const decodedToken = AuthUtils.verifyToken(token);
 
-      if (!decodedToken.hasOwnProperty('tenantId') || !decodedToken.hasOwnProperty('isTenantActive')) {
+      if (!decodedToken.hasOwnProperty('userId') || !decodedToken.hasOwnProperty('userType')) {
         return false;
       }
 
@@ -15,11 +15,11 @@ class TokenValidator {
     }
   }
 
-  public extractTenantId(token: string): string | undefined {
+  public extractUserId(token: string): string | undefined {
     try {
       const decodedToken = AuthUtils.verifyToken(token);
-      if (decodedToken && decodedToken.tenantId) {
-        return decodedToken.tenantId;
+      if (decodedToken && decodedToken.userId) {
+        return decodedToken.userId;
       }
     } catch (error) {
       return undefined;
