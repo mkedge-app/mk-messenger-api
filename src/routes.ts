@@ -4,7 +4,7 @@ import SessionController from "./app/controllers/SessionController";
 import MessageLogController from "./app/controllers/MessageLogController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
-import WebhookController from "./app/controllers/mercado-pago/WebhookController";
+import WebhookController from "./modules/mercado-pago/WebhookController";
 
 import { authenticateUser } from "./middlewares/authenticateUser";
 import { isAdminMiddleware } from "./middlewares/isAdminMiddleware";
@@ -15,7 +15,7 @@ const routes = Router();
 
 // Rotas publicas
 routes.post("/session", SessionController.create); // Login
-routes.post("/mercadopago/webhook", WebhookController.handleNotification); // Webhook do Mercado Pago
+routes.post("/mercadopago/webhook", WebhookController.index); // Webhook do Mercado Pago
 
 // Aplicar middleware de autenticação
 routes.use(authenticateUser);
