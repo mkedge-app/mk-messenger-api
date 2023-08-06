@@ -4,6 +4,7 @@ import SessionController from "./app/controllers/SessionController";
 import MessageLogController from "./app/controllers/MessageLogController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
+import SetSubscriptionController from "./app/controllers/SetSubscriptionController";
 import WebhookController from "./modules/mercado-pago/WebhookController";
 
 import { authenticateUser } from "./middlewares/authenticateUser";
@@ -34,6 +35,9 @@ routes.delete("/whatsapp/sessions/:name", WhatsAppSessionController.delete);
 // Rota para interação com o log de mensagens enviadas
 routes.get("/messages", isAdminMiddleware, MessageLogController.index);
 routes.get("/messages/:requester", MessageLogController.show);
+
+// Rota para atrelar uma assinatura a um usuario
+routes.post("/set-subscription", isAdminMiddleware, SetSubscriptionController.create);
 
 // Rota para envio de mensagens
 routes.post(
