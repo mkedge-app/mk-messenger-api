@@ -13,11 +13,9 @@ import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
 
 const routes = Router();
 
-// Rota de autenticação
-routes.post("/session", SessionController.create);
-
-// Rota para receber as notificações do Mercado Pago
-routes.post("/mercadopago/webhook", WebhookController.handleNotification);
+// Rotas publicas
+routes.post("/session", SessionController.create); // Login
+routes.post("/mercadopago/webhook", WebhookController.handleNotification); // Webhook do Mercado Pago
 
 // Aplicar middleware de autenticação
 routes.use(authenticateUser);
