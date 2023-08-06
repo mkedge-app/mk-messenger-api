@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-interface UserFields {
+export interface UserFields {
   name: string;
   contactPhone: string;
   contactEmail: string;
