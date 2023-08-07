@@ -95,19 +95,25 @@ class App {
    */
   public async start(): Promise<void> {
     try {
+      // Verifica se as variáveis de ambiente HTTP_PORT e HTTPS_PORT estão definidas
       if (!this.checkEnvironmentVariables()) {
+        // Se não estiverem definidas, exibe um erro e encerra o processo
         console.error("[AppServer]: Environment variables HTTP_PORT and HTTPS_PORT must be defined.");
         process.exit(1);
       }
 
+      // Conecta-se ao banco de dados
       await this.connectToDatabase();
 
+      // Inicia o servidor HTTP
       this.startHttpServer();
 
+      // Inicia o servidor HTTPS somente em ambiente de produção
       if (this.isProductionEnvironment() && this.httpsWebSocketServer) {
         this.startHttpsServer();
       }
     } catch (error: any) {
+      // Lida com erros que podem ocorrer durante o processo de inicialização
       this.handleStartupError(error);
     }
   }
