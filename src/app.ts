@@ -94,28 +94,58 @@ class App {
    * The HTTPS server (production only) listens on the port specified in the environment variable HTTPS_PORT.
    */
   public async start(): Promise<void> {
-    // Check if HTTP_PORT and HTTPS_PORT are defined
-    if (!process.env.HTTP_PORT || !process.env.HTTPS_PORT) {
-      console.error("[AppServer]: Environment variables HTTP_PORT and HTTPS_PORT must be defined.");
-      process.exit(1);
-    }
-
     try {
-      await this.database.connectAndCreateDefaultAdminUser();
-      this.httpServer.listen(process.env.HTTP_PORT, async () => {
-        logger.info(`[AppServer]: HTTP Server started on port ${process.env.HTTP_PORT}`);
-        logger.info("[AppServer]: WebSocket Server for HTTP started");
-        await WhatsAppSessionManager.restoreSessions();
-      });
+      if (!this.checkEnvironmentVariables()) {
+        console.error("[AppServer]: Environment variables HTTP_PORT and HTTPS_PORT must be defined.");
+        process.exit(1);
+      }
 
-      if (process.env.NODE_ENV === "production" && this.httpsWebSocketServer) {
-        this.https.listen(process.env.HTTPS_PORT, async () => {
-          logger.info(`[AppServer]: HTTPS Server started on port ${process.env.HTTPS_PORT}`);
-          logger.info("[AppServer]: WebSocket Server for HTTPS started");
-        });
+      await this.connectToDatabase();
+
+      this.startHttpServer();
+
+      if (this.isProductionEnvironment() && this.httpsWebSocketServer) {
+        this.startHttpsServer();
       }
     } catch (error: any) {
-      logger.error(`[AppServer]: Failed to start the servers: ${error.message}`);
+      this.handleStartupError(error);
+    }
+  }
+
+  private checkEnvironmentVariables(): boolean {
+    return !(!process.env.HTTP_PORT || !process.env.HTTPS_PORT);
+  }
+
+  private startHttpServer(): void {
+    this.httpServer.listen(process.env.HTTP_PORT, async () => {
+      logger.info(`[AppServer]: HTTP Server started on port ${process.env.HTTP_PORT}`);
+      logger.info("[AppServer]: WebSocket Server for HTTP started");
+
+      await WhatsAppSessionManager.restoreSessions();
+    });
+  }
+
+  private startHttpsServer(): void {
+    this.https.listen(process.env.HTTPS_PORT, async () => {
+      logger.info(`[AppServer]: HTTPS Server started on port ${process.env.HTTPS_PORT}`);
+      logger.info("[AppServer]: WebSocket Server for HTTPS started");
+    });
+  }
+
+  private isProductionEnvironment(): boolean {
+    return process.env.NODE_ENV === "production";
+  }
+
+  private handleStartupError(error: any): void {
+    logger.error(`[AppServer]: Failed to start the servers: ${error.message}`);
+    process.exit(1);
+  }
+
+  private async connectToDatabase(): Promise<void> {
+    try {
+      await this.database.connectAndCreateDefaultAdminUser();
+    } catch (error: any) {
+      logger.error(`[AppServer]: Failed to connect to the database: ${error.message}`);
       process.exit(1);
     }
   }
