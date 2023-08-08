@@ -7,18 +7,37 @@ class WhatsAppMessageController {
   async create(req: Request, res: Response) {
     try {
       // Extrair os parâmetros necessários do corpo da requisição
-      const { name, to, text } = req.body;
+      const { name, to, text, type } = req.body;
 
       // Verificar se todos os parâmetros necessários estão presentes
-      if (!name || !to || text == null) {
+      if (!name || !to || text == null || !type) {
         return res.status(400).json({ error: "Parâmetros incompletos" });
       }
 
       // Garantir que text seja sempre uma string usando o operador de coalescência nula (??)
       const cleanedText = typeof text === 'string' ? text.replace(/[\r\n]/g, '') : '';
 
-      // Enviar a mensagem usando o WhatsAppSessionManager
-      const sentMessage = await WhatsAppSessionManager.sendTextMessage(name, to, text);
+      let sentMessage;
+
+      switch (type) {
+        case 'text':
+          // Enviar a mensagem usando o WhatsAppSessionManager
+          sentMessage = await WhatsAppSessionManager.sendTextMessage(name, to, text);
+          break;
+
+        case 'file':
+          // Enviar a mensagem usando o WhatsAppSessionManager
+          sentMessage = await WhatsAppSessionManager.sendFileMessage(name, to, text);
+          break;
+
+        case 'image':
+          // Enviar a mensagem usando o WhatsAppSessionManager
+          sentMessage = await WhatsAppSessionManager.sendImageMessage(name, to, text);
+          break;
+
+        default:
+          break;
+      }
 
       // Verificar se a mensagem foi enviada com sucesso
       if (sentMessage && sentMessage.key && typeof sentMessage.key.id === 'string') {
