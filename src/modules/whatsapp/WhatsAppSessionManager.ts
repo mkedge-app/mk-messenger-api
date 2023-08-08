@@ -152,6 +152,10 @@ class WhatsAppSessionManager {
     console.log("WhatsAppSessionManager", "sendFileMessage");
     await this.socketManager.sendFileMessage(name, to, text);
   }
+
+  public async sendImageMessage(name: string, to: string, text: string) {
+    await this.socketManager.sendImageMessage(name, to, text);
+  }
 }
 
 export default new WhatsAppSessionManager();
