@@ -1,4 +1,4 @@
-import makeWASocket, { ConnectionState, DisconnectReason, WAMessageUpdate, WAProto, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import makeWASocket, { ConnectionState, DisconnectReason, WAMessageUpdate, WAProto, useMultiFileAuthState, MiscMessageGenerationOptions, AnyMessageContent, WAMediaUpload } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
 import fs from 'fs-extra';
 import path from 'path';
@@ -6,6 +6,7 @@ import logger from '../../logger';
 import { Boom } from '@hapi/boom';
 import FileUtils from '../../services/FileUtils';
 import MessageLogService from '../../services/MessageLogService';
+import { Readable } from 'winston-daily-rotate-file';
 
 type WASocket = ReturnType<typeof makeWASocket> | undefined;
 
@@ -248,6 +249,34 @@ class WhatsAppSocketManager {
       logger.debug(`[WhatsAppSessionManager] Enviando mensagem via socket de ${name}: ${text}`);
       try {
         const sentMsg = await WASocket.sendMessage(id, { text });
+        logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
+        logger.info(JSON.stringify(sentMsg));
+        return sentMsg;
+      } catch (error) {
+        logger.error(JSON.stringify(error));
+        return undefined;
+      }
+    } else {
+      logger.error(`[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`);
+      return undefined;
+    }
+  }
+
+  public async sendFileMessage(name: string, to: string, text: string) {
+    console.log('sendFileMessage');
+    const WASocket = this.getSocketByName(name);
+
+    if (WASocket) {
+      const id = `${to}@s.whatsapp.net`;
+
+      try {
+        const fileStream = fs.createReadStream(text);
+        console.log('path', text);
+        const sentMsg = await WASocket.sendMessage(id, {
+          document: { stream: fileStream },
+          fileName: 'Boleto Bancario',
+          mimetype: 'application/pdf'
+        });
         logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
         logger.info(JSON.stringify(sentMsg));
         return sentMsg;
