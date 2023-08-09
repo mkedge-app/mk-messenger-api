@@ -6,7 +6,6 @@ import logger from '../../logger';
 import { Boom } from '@hapi/boom';
 import FileUtils from '../../services/FileUtils';
 import MessageLogService from '../../services/MessageLogService';
-import { Readable } from 'winston-daily-rotate-file';
 
 type WASocket = ReturnType<typeof makeWASocket> | undefined;
 
