@@ -260,6 +260,55 @@ class WhatsAppSocketManager {
       return undefined;
     }
   }
+
+  public async sendFileMessage(name: string, to: string, text: string) {
+    console.log('sendFileMessage');
+    const WASocket = this.getSocketByName(name);
+
+    if (WASocket) {
+      const id = `${to}@s.whatsapp.net`;
+
+      try {
+        const fileStream = fs.createReadStream(text);
+        console.log('path', text);
+        const sentMsg = await WASocket.sendMessage(id, {
+          document: { stream: fileStream },
+          fileName: 'Boleto Bancario',
+          mimetype: 'application/pdf'
+        });
+        logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
+        logger.info(JSON.stringify(sentMsg));
+        return sentMsg;
+      } catch (error) {
+        logger.error(JSON.stringify(error));
+        return undefined;
+      }
+    } else {
+      logger.error(`[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`);
+      return undefined;
+    }
+  }
+
+  public async sendImageMessage(name: string, to: string, text: string) {
+    const WASocket = this.getSocketByName(name);
+
+    if (WASocket) {
+      const id = `${to}@s.whatsapp.net`;
+      const fileStream = fs.createReadStream(text);
+      try {
+        const sentMsg = await WASocket.sendMessage(id, { image: { stream: fileStream } });
+        logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
+        logger.info(JSON.stringify(sentMsg));
+        return sentMsg;
+      } catch (error) {
+        logger.error(JSON.stringify(error));
+        return undefined;
+      }
+    } else {
+      logger.error(`[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`);
+      return undefined;
+    }
+  }
 }
 
 export default WhatsAppSocketManager;
