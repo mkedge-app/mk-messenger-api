@@ -1,4 +1,4 @@
-import makeWASocket, { ConnectionState, DisconnectReason, WAMessageUpdate, WAProto, useMultiFileAuthState, MiscMessageGenerationOptions, AnyMessageContent, WAMediaUpload } from '@whiskeysockets/baileys';
+import makeWASocket, { ConnectionState, DisconnectReason, WAMessageUpdate, WAProto, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Subject } from 'rxjs';
 import fs from 'fs-extra';
 import path from 'path';
