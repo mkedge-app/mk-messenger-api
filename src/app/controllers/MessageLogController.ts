@@ -33,17 +33,24 @@ class MessageLogController {
   async show(req: Request, res: Response) {
     try {
       const { requester } = req.params;
+      const { page = 1, limit = 10 } = req.query;
 
-      // Obter todas as mensagens do log associadas ao requester (remoteJid) usando o MessageLogService
-      const messages = await MessageLogService.getMessagesByRequester(requester);
+      const paginationResult: PaginationResult<IMessage> = await MessageLogService.getMessagesByRequesterWithPagination(
+        requester,
+        +page,
+        +limit
+      );
 
-      // Verificar se há mensagens encontradas
-      if (messages.length === 0) {
+      if (paginationResult.data.length === 0) {
         return res.status(404).json({ message: "Nenhuma mensagem encontrada para o requester especificado" });
       }
 
-      // Retornar as mensagens do requester como resposta em formato JSON
-      return res.json(messages);
+      return res.json({
+        currentPage: paginationResult.currentPage,
+        totalPages: paginationResult.totalPages,
+        totalMessages: paginationResult.totalMessages, // Certifique-se de incluir essa propriedade
+        messages: paginationResult.data,
+      });
     } catch (error) {
       logger.info("[MessageLogController]: Erro ao obter mensagens do requester:", error);
       return res.status(500).json({ error: "Erro ao obter mensagens do requester" });
