@@ -1,5 +1,12 @@
 import Message, { IMessage } from "../app/models/Message";
 
+export interface PaginationResult<T> {
+  currentPage: number;
+  totalPages: number;
+  totalMessages: number;
+  data: T[];
+}
+
 class MessageLogService {
   async createMessageLog(remoteJid: string, messageId: string, content: string, status: number, requester: string) {
     try {
@@ -56,6 +63,59 @@ class MessageLogService {
       throw new Error("Erro ao obter todas as mensagens do log");
     }
   }
+
+  async getAllMessagesWithPagination(page: number, limit: number): Promise<PaginationResult<IMessage>> {
+    try {
+      const skip = (page - 1) * limit;
+
+      const totalMessages = await Message.countDocuments();
+      const totalPages = Math.ceil(totalMessages / limit);
+
+      const messages = await Message.find()
+        .sort({ createdAt: -1 }) // Ordenar do mais recente para o mais antigo
+        .skip(skip)
+        .limit(limit);
+
+      return {
+        currentPage: page,
+        totalPages,
+        totalMessages,
+        data: messages,
+      };
+    } catch (error: any) {
+      throw new Error("Error fetching messages with pagination: " + error.message);
+    }
+  }
+
+  async getMessagesByRequesterWithPagination(
+    requester: string,
+    page: number,
+    limit: number
+  ): Promise<PaginationResult<IMessage>> {
+    try {
+      const skip = (page - 1) * limit;
+
+      const totalMessages = await Message.countDocuments({ requester });
+      const totalPages = Math.ceil(totalMessages / limit);
+
+      const messages = await Message.find({ requester })
+        .sort({ createdAt: -1 }) // Ordenar do mais recente para o mais antigo
+        .skip(skip)
+        .limit(limit);
+
+      const paginationResult: PaginationResult<IMessage> = {
+        currentPage: page,
+        totalPages,
+        totalMessages,
+        data: messages,
+      };
+
+      return paginationResult;
+    } catch (error: any) {
+      throw new Error("Error fetching messages by requester with pagination: " + error.message);
+    }
+  }
+
 }
 
 export default new MessageLogService();
