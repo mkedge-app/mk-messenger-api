@@ -48,7 +48,7 @@ class MessageLogController {
       return res.json({
         currentPage: paginationResult.currentPage,
         totalPages: paginationResult.totalPages,
-        totalMessages: paginationResult.totalMessages, // Certifique-se de incluir essa propriedade
+        totalMessages: paginationResult.totalMessages,
         messages: paginationResult.data,
       });
     } catch (error) {
