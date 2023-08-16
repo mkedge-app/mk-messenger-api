@@ -86,6 +86,36 @@ class MessageLogService {
       throw new Error("Error fetching messages with pagination: " + error.message);
     }
   }
+
+  async getMessagesByRequesterWithPagination(
+    requester: string,
+    page: number,
+    limit: number
+  ): Promise<PaginationResult<IMessage>> {
+    try {
+      const skip = (page - 1) * limit;
+
+      const totalMessages = await Message.countDocuments({ requester });
+      const totalPages = Math.ceil(totalMessages / limit);
+
+      const messages = await Message.find({ requester })
+        .sort({ createdAt: -1 }) // Ordenar do mais recente para o mais antigo
+        .skip(skip)
+        .limit(limit);
+
+      const paginationResult: PaginationResult<IMessage> = {
+        currentPage: page,
+        totalPages,
+        totalMessages,
+        data: messages,
+      };
+
+      return paginationResult;
+    } catch (error: any) {
+      throw new Error("Error fetching messages by requester with pagination: " + error.message);
+    }
+  }
+
 }
 
 export default new MessageLogService();
