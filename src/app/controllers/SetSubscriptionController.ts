@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
 import User from '../models/User';
 import Subscription from '../models/Subscription';
 
@@ -25,23 +24,24 @@ class SetSubscriptionController {
       }
 
       // Verificar se outro usuário já possui a mesma assinatura
-      const userWithSubscription = await User.findOne({ subscription: new Types.ObjectId(subscriptionId) });
+      const userWithSubscription = await User.findOne({ subscription: subscriptionId });
       if (userWithSubscription && userWithSubscription._id.toString() !== userId) {
         return res.status(400).json({ error: 'Outro usuário já possui esta assinatura' });
       }
 
       // Verificar se o usuário já possui outra assinatura
-      if (user.subscription && user.subscription.toString() !== subscriptionId) {
+      if (user.subscription && user.subscription !== subscriptionId) {
         return res.status(400).json({ error: 'Usuário já possui outra assinatura' });
       }
 
       // Atualizar a assinatura do usuário e salvar no banco de dados
-      user.subscription = new Types.ObjectId(subscriptionId); // Converte para ObjectId
+      user.subscription = subscriptionId;
       await user.save();
 
       // Retornar a resposta de sucesso com o usuário atualizado
       return res.json({ success: true, user });
     } catch (error) {
+      console.log(error);
       // Em caso de erro, retornar uma resposta de erro com status 500
       return res.status(500).json({ error: 'Erro ao definir assinatura' });
     }
