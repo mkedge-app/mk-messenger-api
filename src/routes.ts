@@ -11,6 +11,7 @@ import { authenticateUser } from "./middlewares/authenticateUser";
 import { isAdminMiddleware } from "./middlewares/isAdminMiddleware";
 import { isTenantMiddleware } from "./middlewares/isTenantMiddleware";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
+import SubscriptionController from "./app/controllers/SubscriptionController";
 
 const routes = Router();
 
@@ -38,6 +39,9 @@ routes.get("/messages/:requester", MessageLogController.show);
 
 // Rota para atrelar uma assinatura a um usuario
 routes.post("/set-subscription", isAdminMiddleware, SetSubscriptionController.create);
+
+// Rota para interação com assinaturas
+routes.get("/subscriptions/:subscriptionId", isAdminMiddleware, SubscriptionController.show);
 
 // Rota para envio de mensagens
 routes.post(
