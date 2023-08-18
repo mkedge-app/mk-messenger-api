@@ -22,7 +22,7 @@ class UserController {
     }
 
     try {
-      const user = await User.findById(id);
+      const user = await User.findById(id).populate('subscription');
       if (!user) {
         return res.status(404).json({ error: 'User não encontrado' });
       }
