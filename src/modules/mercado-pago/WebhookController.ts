@@ -55,19 +55,22 @@ class WebhookController {
   private async handleSubscriptionPreapproval(eventData: any): Promise<void> {
     const idAssinatura = eventData.data.id;
     const infoAssinatura = await MercadoPagoService.consultarDadosDaAssinatura(idAssinatura);
-    await Subscription.findOneAndUpdate({ id: infoAssinatura.id }, infoAssinatura, { upsert: true, new: true });
+    const updatedData = { ...infoAssinatura, _id: idAssinatura };
+    await Subscription.findOneAndUpdate({ _id: idAssinatura }, updatedData, { upsert: true, new: true });
   }
 
   private async handleSubscriptionAuthorizedPayment(eventData: any): Promise<void> {
     const idFatura = eventData.data.id;
     const infoFatura = await MercadoPagoService.consultarDadosDaFatura(idFatura);
-    await Fatura.findOneAndUpdate({ id: infoFatura.id }, infoFatura, { upsert: true, new: true });
+    const updatedData = { ...infoFatura, _id: idFatura };
+    await Fatura.findOneAndUpdate({ _id: idFatura }, updatedData, { upsert: true, new: true });
   }
 
   private async handlePayment(eventData: any): Promise<void> {
     const idPagamento = eventData.data.id;
     const infoPagamento = await MercadoPagoService.consultarDadosDoPagamento(idPagamento);
-    await Payment.findOneAndUpdate({ id: infoPagamento.id }, infoPagamento, { upsert: true, new: true });
+    const updatedData = { ...infoPagamento, _id: idPagamento };
+    await Payment.findOneAndUpdate({ _id: idPagamento }, updatedData, { upsert: true, new: true });
   }
 }
 
