@@ -7,7 +7,7 @@ export interface UserFields {
   username: string;
   passwordHash: string;
   userType: 'admin' | 'tenant';
-  subscription?: mongoose.Types.ObjectId; // Referência ao ID da assinatura
+  subscription?: string;
 }
 
 interface UserDocument extends UserFields, Document { }
@@ -20,7 +20,7 @@ const userSchema = new Schema<UserDocument>(
     username: { type: String, required: true, unique: true },
     passwordHash: { type: String, required: true },
     userType: { type: String, enum: ['admin', 'tenant'], required: true },
-    subscription: { type: Schema.Types.ObjectId, ref: 'Subscription' }, // Referência à assinatura
+    subscription: { type: String, ref: 'Subscription' }, // Referência à assinatura
   },
   {
     timestamps: true, // Adiciona os campos createdAt e updatedAt
