@@ -7,6 +7,10 @@ import MercadoPagoService from './MercadoPagoService';
 import { EventMapping } from './types';
 
 class WebhookController {
+  constructor() {
+    this.index = this.index.bind(this);  // Bind the index method to the correct context
+  }
+
   // Mapeamento de manipuladores de eventos
   private eventHandlers: EventMapping = {
     'subscription_preapproval': this.handleSubscriptionPreapproval,
