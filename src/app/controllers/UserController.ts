@@ -5,7 +5,7 @@ import User from '../models/User';
 class UserController {
   async index(req: Request, res: Response) {
     try {
-      const users = await User.find();
+      const users = await User.find().populate('subscription');
       return res.status(200).json(users);
     } catch (error) {
       return res.status(500).json({ error: 'Erro ao listar users' });
