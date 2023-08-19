@@ -8,6 +8,7 @@ import WhatsAppMessageController from "./app/controllers/WhatsAppMessageControll
 import UserSubscriptionController from "./app/controllers/UserSubscriptionController";
 import SubscriptionController from "./app/controllers/SubscriptionController";
 import InvoiceController from "./app/controllers/InvoiceController";
+import PaymentController from "./app/controllers/PaymentController";
 
 import WebhookController from "./modules/mercado-pago/WebhookController";
 
@@ -48,6 +49,9 @@ routes.get("/subscriptions/:subscriptionId", isAdminMiddleware, SubscriptionCont
 
 // Rota para interaçao com faturas
 routes.get("/subscriptions/:subscriptionId/invoices", isAdminMiddleware, InvoiceController.show);
+
+// Rota para interação com pagamentos
+routes.get("/subscriptions/:subscriptionId/invoices/:invoiceId/payments", isAdminMiddleware, PaymentController.show);
 
 // Rota para envio de mensagens
 routes.post(
