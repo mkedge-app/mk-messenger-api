@@ -15,11 +15,6 @@ class MessageLogController {
         +limit // Converte "limit" para um número
       );
 
-      // Verifica se não há mensagens encontradas no log.
-      if (paginationResult.data.length === 0) {
-        return res.status(404).json({ message: "Nenhuma mensagem encontrada no log" });
-      }
-
       // Retorna uma resposta JSON contendo informações de paginação e as mensagens encontradas.
       return res.json({
         currentPage: paginationResult.currentPage,
@@ -33,7 +28,6 @@ class MessageLogController {
       return res.status(500).json({ error: "Erro ao listar as mensagens do log" });
     }
   }
-
 
   async show(req: Request, res: Response) {
     try {
