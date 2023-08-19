@@ -7,6 +7,7 @@ import WhatsAppSessionController from "./app/controllers/WhatsAppSessionControll
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
 import UserSubscriptionController from "./app/controllers/UserSubscriptionController";
 import SubscriptionController from "./app/controllers/SubscriptionController";
+import InvoiceController from "./app/controllers/InvoiceController";
 
 import WebhookController from "./modules/mercado-pago/WebhookController";
 
@@ -44,6 +45,9 @@ routes.post("/users/:userId/subscriptions/:subscriptionId", isAdminMiddleware, U
 
 // Rota para interação com assinaturas
 routes.get("/subscriptions/:subscriptionId", isAdminMiddleware, SubscriptionController.show);
+
+// Rota para interaçao com faturas
+routes.get("/subscriptions/:subscriptionId/invoices", isAdminMiddleware, InvoiceController.show);
 
 // Rota para envio de mensagens
 routes.post(
