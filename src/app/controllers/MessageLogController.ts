@@ -31,19 +31,25 @@ class MessageLogController {
 
   async show(req: Request, res: Response) {
     try {
+      // Extrai o parâmetro "requester" da solicitação.
       const { requester } = req.params;
+
+      // Verifica se o parâmetro "requester" foi fornecido. Se não for fornecido, retorna um erro.
+      if (!requester) {
+        return res.status(400).json({ error: "O parâmetro 'requester' é obrigatório" });
+      }
+
+      // Extrai os parâmetros de consulta da solicitação, como "page" (página atual) e "limit" (limite de itens por página).
       const { page = 1, limit = 10 } = req.query;
 
+      // Chama um serviço chamado MessageLogService para obter mensagens do requester com paginação, com base nos parâmetros da consulta.
       const paginationResult: PaginationResult<IMessage> = await MessageLogService.getMessagesByRequesterWithPagination(
         requester,
         +page,
         +limit
       );
 
-      if (paginationResult.data.length === 0) {
-        return res.status(404).json({ message: "Nenhuma mensagem encontrada para o requester especificado" });
-      }
-
+      // Retorna uma resposta JSON contendo informações de paginação e as mensagens encontradas.
       return res.json({
         currentPage: paginationResult.currentPage,
         totalPages: paginationResult.totalPages,
