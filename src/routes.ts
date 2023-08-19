@@ -1,17 +1,19 @@
 import { Router } from "express";
+
 import UserController from "./app/controllers/UserController";
 import SessionController from "./app/controllers/SessionController";
 import MessageLogController from "./app/controllers/MessageLogController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
-import SetSubscriptionController from "./app/controllers/SetSubscriptionController";
+import UserSubscriptionController from "./app/controllers/UserSubscriptionController";
+import SubscriptionController from "./app/controllers/SubscriptionController";
+
 import WebhookController from "./modules/mercado-pago/WebhookController";
 
 import { authenticateUser } from "./middlewares/authenticateUser";
 import { isAdminMiddleware } from "./middlewares/isAdminMiddleware";
 import { isTenantMiddleware } from "./middlewares/isTenantMiddleware";
 import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
-import SubscriptionController from "./app/controllers/SubscriptionController";
 
 const routes = Router();
 
@@ -38,7 +40,7 @@ routes.get("/messages", isAdminMiddleware, MessageLogController.index);
 routes.get("/messages/:requester", MessageLogController.show);
 
 // Rota para atrelar uma assinatura a um usuario
-routes.post("/set-subscription", isAdminMiddleware, SetSubscriptionController.create);
+routes.post("/users/:userId/subscriptions/:subscriptionId", isAdminMiddleware, UserSubscriptionController.create);
 
 // Rota para interação com assinaturas
 routes.get("/subscriptions/:subscriptionId", isAdminMiddleware, SubscriptionController.show);
