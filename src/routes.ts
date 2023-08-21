@@ -6,6 +6,7 @@ import MessageLogController from "./app/controllers/MessageLogController";
 import WhatsAppSessionController from "./app/controllers/WhatsAppSessionController";
 import WhatsAppMessageController from "./app/controllers/WhatsAppMessageController";
 import UserSubscriptionController from "./app/controllers/UserSubscriptionController";
+import UnassociatedSubscriptionController from "./app/controllers/UnassociatedSubscriptionController ";
 import SubscriptionController from "./app/controllers/SubscriptionController";
 import InvoiceController from "./app/controllers/InvoiceController";
 import PaymentController from "./app/controllers/PaymentController";
@@ -43,6 +44,9 @@ routes.get("/messages/:requester", MessageLogController.show);
 
 // Rota para atrelar uma assinatura a um usuario
 routes.post("/users/:userId/subscriptions/:subscriptionId", isAdminMiddleware, UserSubscriptionController.create);
+
+// Rota para listar assinaturas não associadas.
+routes.get('/subscriptions/unassociated', isAdminMiddleware, UnassociatedSubscriptionController.index);
 
 // Rota para interação com assinaturas
 routes.get("/subscriptions/:subscriptionId", isAdminMiddleware, SubscriptionController.show);
