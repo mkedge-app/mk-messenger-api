@@ -46,8 +46,8 @@ routes.post("/users/:userId/subscriptions/:subscriptionId", isAdminMiddleware, U
 
 // Rota para interação com assinaturas
 routes.get("/subscriptions/:subscriptionId", isAdminMiddleware, SubscriptionController.show);
-routes.get("/subscriptions/:subscriptionId/invoices", isAdminMiddleware, InvoiceController.show); // Obter faturas de uma dada assinatura
-routes.get("/subscriptions/:subscriptionId/invoices/:invoiceId/payments", isAdminMiddleware, PaymentController.show); // Obter pagamentos de uma dada assinatura e de uma dada fatura
+routes.get("/subscriptions/:subscriptionId/invoices", isAdminMiddleware, InvoiceController.show); // Obter faturas
+routes.get("/subscriptions/:subscriptionId/invoices/:invoiceId/payments", isAdminMiddleware, PaymentController.show); // Obter pagamentos
 
 // Rota para envio de mensagens
 routes.post(
