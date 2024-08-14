@@ -1,11 +1,17 @@
-import makeWASocket, { ConnectionState, DisconnectReason, WAMessageUpdate, WAProto, useMultiFileAuthState } from '@whiskeysockets/baileys';
-import { Subject } from 'rxjs';
-import fs from 'fs-extra';
-import path from 'path';
-import logger from '../../logger';
-import { Boom } from '@hapi/boom';
-import FileUtils from '../../services/FileUtils';
-import MessageLogService from '../../services/MessageLogService';
+import makeWASocket, {
+  ConnectionState,
+  DisconnectReason,
+  WAMessageUpdate,
+  WAProto,
+  useMultiFileAuthState,
+} from "@whiskeysockets/baileys";
+import { Subject } from "rxjs";
+import fs from "fs-extra";
+import path from "path";
+import logger from "../../logger";
+import { Boom } from "@hapi/boom";
+import FileUtils from "../../services/FileUtils";
+import MessageLogService from "../../services/MessageLogService";
 
 type WASocket = ReturnType<typeof makeWASocket> | undefined;
 
@@ -16,14 +22,17 @@ interface ConnectionUpdateData {
 
 class WhatsAppSocketManager {
   private sockets: Map<string, WASocket> = new Map();
-  private connectionUpdateSubjects: Map<string, Subject<Partial<ConnectionState>>> = new Map();
+  private connectionUpdateSubjects: Map<
+    string,
+    Subject<Partial<ConnectionState>>
+  > = new Map();
   private fileUtils: FileUtils;
   private readonly tokensFolder: string;
-  private readonly loggerPrefix: string = '[WhatsAppSocketManager]';
+  private readonly loggerPrefix: string = "[WhatsAppSocketManager]";
 
   constructor() {
     this.fileUtils = new FileUtils();
-    this.tokensFolder = path.resolve(__dirname, '..', '..', '..', 'tokens');
+    this.tokensFolder = path.resolve(__dirname, "..", "..", "..", "tokens");
   }
 
   /**
@@ -34,22 +43,71 @@ class WhatsAppSocketManager {
   public createSocketWhatsApp(name: string): Promise<void> {
     return new Promise<void>(async (resolve) => {
       logger.info(`${this.loggerPrefix} Criando sessão para ${name}...`);
-      const { state, saveCreds } = await useMultiFileAuthState(`tokens/${name}`);
+      const { state, saveCreds } = await useMultiFileAuthState(
+        `tokens/${name}`
+      );
 
-      const socketWhatsApp = makeWASocket({ printQRInTerminal: true, auth: state, qrTimeout: 20000 });
+      const socketWhatsApp = makeWASocket({
+        printQRInTerminal: true,
+        auth: state,
+        qrTimeout: 20000,
+      });
 
-      socketWhatsApp.ev.on('creds.update', () => {
+      socketWhatsApp.ev.on("creds.update", () => {
         saveCreds();
       });
 
-      logger.info(`${this.loggerPrefix} Ouvindo atualizações de conexão para o WASocket de ${name}`);
-      socketWhatsApp.ev.on('connection.update', (update: Partial<ConnectionState>) => {
-        this.handleConnectionUpdate({ name, update });
-      });
+      logger.info(
+        `${this.loggerPrefix} Ouvindo atualizações de conexão para o WASocket de ${name}`
+      );
+      socketWhatsApp.ev.on(
+        "connection.update",
+        (update: Partial<ConnectionState>) => {
+          this.handleConnectionUpdate({ name, update });
+        }
+      );
 
       // Monitorar eventos 'messages.update'
-      socketWhatsApp.ev.on('messages.update', async (updates: WAMessageUpdate[]) => {
-        await this.handleMessageUpdates(updates);
+      socketWhatsApp.ev.on(
+        "messages.update",
+        async (updates: WAMessageUpdate[]) => {
+          await this.handleMessageUpdates(updates);
+        }
+      );
+
+      // Monitorar eventos 'messages.upsert'
+      socketWhatsApp.ev.on("messages.upsert", async ({ messages }) => {
+        const { key, message } = messages[0];
+        const id = key.remoteJid ?? "";
+        const messageText = message?.conversation ?? "";
+
+        // Verificar se a mensagem é de um grupo
+        if (id.endsWith("@g.us")) {
+          return;
+        }
+
+        if (key.fromMe) return;
+
+        try {
+          const response = await fetch(
+            "http://provedor.updata.com.br/chatgpt/menu/index.php",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sender: id, message: messageText }),
+            }
+          );
+
+          if (!response.ok)
+            throw new Error(`Erro na requisição: ${response.statusText}`);
+
+          const { reply: responseText = "" } = await response.json();
+
+          if (responseText)
+            await socketWhatsApp.sendMessage(id, { text: responseText });
+        } catch (error) {
+          console.error("Erro ao enviar mensagem:", error);
+        }
       });
 
       this.sockets.set(name, socketWhatsApp);
@@ -63,37 +121,50 @@ class WhatsAppSocketManager {
    * @param data Os dados de atualização de conexão.
    * @returns Uma Promise que é resolvida quando a atualização é manipulada.
    */
-  private async handleConnectionUpdate(data: ConnectionUpdateData): Promise<void> {
+  private async handleConnectionUpdate(
+    data: ConnectionUpdateData
+  ): Promise<void> {
     const { name, update } = data;
-    logger.info(`${this.loggerPrefix} Atualização de conexão do socket de ${name} recebida...`);
+    logger.info(
+      `${this.loggerPrefix} Atualização de conexão do socket de ${name} recebida...`
+    );
 
     const { connection, lastDisconnect } = update;
     const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
 
-    if (connection === 'close') {
-      logger.info(`${this.loggerPrefix} A conexão com o socket de ${name} foi fechada`);
+    if (connection === "close") {
+      logger.info(
+        `${this.loggerPrefix} A conexão com o socket de ${name} foi fechada`
+      );
       this.sockets.delete(name);
       await this.handleConnectionClosed(name, statusCode);
     }
 
     // Emitir a atualização da conexão para o Observable correspondente
     const subject = this.connectionUpdateSubjects.get(name);
-    if (subject) { subject.next(update) }
+    if (subject) {
+      subject.next(update);
+    }
   }
 
-  private async handleMessageUpdates(updates: WAMessageUpdate[]): Promise<void> {
+  private async handleMessageUpdates(
+    updates: WAMessageUpdate[]
+  ): Promise<void> {
     for (const update of updates) {
       // Verificar se o evento de atualização contém o campo 'status'
       if (update.update?.status) {
         try {
           // Certificar-se de que remoteJid e id sejam sempre strings válidas usando o operador de coalescência nula (??)
-          const remoteJid = update.key.remoteJid ?? '';
-          const id = update.key.id ?? '';
+          const remoteJid = update.key.remoteJid ?? "";
+          const id = update.key.id ?? "";
           const messageKey = { remoteJid, id };
           const updateData = { status: update.update.status };
           await MessageLogService.updateMessageStatus(messageKey, updateData);
         } catch (error) {
-          logger.error(`${this.loggerPrefix}: Erro ao atualizar status da mensagem no banco de dedados`, error);
+          logger.error(
+            `${this.loggerPrefix}: Erro ao atualizar status da mensagem no banco de dedados`,
+            error
+          );
         }
       }
     }
@@ -105,7 +176,10 @@ class WhatsAppSocketManager {
    * @param statusCode O código de status que indica o motivo do fechamento da conexão.
    * @returns Uma Promise que é resolvida quando a lógica de tratamento é concluída.
    */
-  private async handleConnectionClosed(name: string, statusCode?: number): Promise<void> {
+  private async handleConnectionClosed(
+    name: string,
+    statusCode?: number
+  ): Promise<void> {
     switch (statusCode) {
       case DisconnectReason.loggedOut:
         logger.info(`${this.loggerPrefix} Motivo: Logout`);
@@ -136,7 +210,7 @@ class WhatsAppSocketManager {
         logger.info(`${this.loggerPrefix} Motivo: timedOut`);
         break;
       default:
-        logger.info(`${this.loggerPrefix} Motivo: Desconhecido`)
+        logger.info(`${this.loggerPrefix} Motivo: Desconhecido`);
         await this.createSocketWhatsApp(name); // Reconectar...
         break;
     }
@@ -156,7 +230,9 @@ class WhatsAppSocketManager {
    * @param name O nome da sessão.
    * @returns O Observable de atualização de conexão.
    */
-  public getConnectionUpdateObservable(name: string): Subject<Partial<ConnectionState>> {
+  public getConnectionUpdateObservable(
+    name: string
+  ): Subject<Partial<ConnectionState>> {
     let subject = this.connectionUpdateSubjects.get(name);
     if (!subject) {
       subject = new Subject<Partial<ConnectionState>>();
@@ -170,7 +246,7 @@ class WhatsAppSocketManager {
    * @returns Uma Promise que é resolvida com um array de nomes de sessão.
    */
   public async getExistingSessionNames(): Promise<string[]> {
-    logger.info('[WhatsAppSocketManager]: Buscando sessões existentes...');
+    logger.info("[WhatsAppSocketManager]: Buscando sessões existentes...");
     const folderNames = await fs.readdir(this.tokensFolder);
     const nonEmptyFolderNames: string[] = [];
 
@@ -236,19 +312,31 @@ class WhatsAppSocketManager {
 
   public deactivateSession(name: string) {
     const WASocket = this.getSocketByName(name);
-    if (WASocket) { WASocket.ws.close() }
+    if (WASocket) {
+      WASocket.ws.close();
+    }
   }
 
-  public async sendTextMessage(name: string, to: string, text: string): Promise<WAProto.WebMessageInfo | undefined> {
-    logger.info(`[WhatsAppSessionManager] Enviando mensagem de texto de ${name} para ${to}: ${text}`);
+  public async sendTextMessage(
+    name: string,
+    to: string,
+    text: string
+  ): Promise<WAProto.WebMessageInfo | undefined> {
+    logger.info(
+      `[WhatsAppSessionManager] Enviando mensagem de texto de ${name} para ${to}: ${text}`
+    );
     const WASocket = this.getSocketByName(name);
 
     if (WASocket) {
       const id = `${to}@s.whatsapp.net`;
-      logger.debug(`[WhatsAppSessionManager] Enviando mensagem via socket de ${name}: ${text}`);
+      logger.debug(
+        `[WhatsAppSessionManager] Enviando mensagem via socket de ${name}: ${text}`
+      );
       try {
         const sentMsg = await WASocket.sendMessage(id, { text });
-        logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
+        logger.info(
+          `[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`
+        );
         logger.info(JSON.stringify(sentMsg));
         return sentMsg;
       } catch (error) {
@@ -256,13 +344,15 @@ class WhatsAppSocketManager {
         return undefined;
       }
     } else {
-      logger.error(`[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`);
+      logger.error(
+        `[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`
+      );
       return undefined;
     }
   }
 
   public async sendFileMessage(name: string, to: string, text: string) {
-    console.log('sendFileMessage');
+    console.log("sendFileMessage");
     const WASocket = this.getSocketByName(name);
 
     if (WASocket) {
@@ -270,13 +360,15 @@ class WhatsAppSocketManager {
 
       try {
         const fileStream = fs.createReadStream(text);
-        console.log('path', text);
+        console.log("path", text);
         const sentMsg = await WASocket.sendMessage(id, {
           document: { stream: fileStream },
-          fileName: 'Boleto Bancario',
-          mimetype: 'application/pdf'
+          fileName: "Boleto Bancario",
+          mimetype: "application/pdf",
         });
-        logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
+        logger.info(
+          `[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`
+        );
         logger.info(JSON.stringify(sentMsg));
         return sentMsg;
       } catch (error) {
@@ -284,7 +376,9 @@ class WhatsAppSocketManager {
         return undefined;
       }
     } else {
-      logger.error(`[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`);
+      logger.error(
+        `[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`
+      );
       return undefined;
     }
   }
@@ -296,8 +390,12 @@ class WhatsAppSocketManager {
       const id = `${to}@s.whatsapp.net`;
       const fileStream = fs.createReadStream(text);
       try {
-        const sentMsg = await WASocket.sendMessage(id, { image: { stream: fileStream } });
-        logger.info(`[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`);
+        const sentMsg = await WASocket.sendMessage(id, {
+          image: { stream: fileStream },
+        });
+        logger.info(
+          `[WhatsAppSessionManager] Mensagem enviada com sucesso de ${name} para ${to}`
+        );
         logger.info(JSON.stringify(sentMsg));
         return sentMsg;
       } catch (error) {
@@ -305,7 +403,9 @@ class WhatsAppSocketManager {
         return undefined;
       }
     } else {
-      logger.error(`[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`);
+      logger.error(
+        `[WhatsAppSessionManager] Socket não encontrado para a sessão ${name}`
+      );
       return undefined;
     }
   }
