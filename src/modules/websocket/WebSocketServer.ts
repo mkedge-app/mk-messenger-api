@@ -6,6 +6,7 @@ import WhatsAppSessionManager, { Session } from '../whatsapp/WhatsAppSessionMana
 import logger from '../../logger';
 import { QRCodeData } from '../../types/WhatsAppApi';
 import WebSocketDataSender from './WebSocketDataSender';
+import User from '../../app/models/User';
 
 interface SocketMap {
   [name: string]: WebSocket;
@@ -79,6 +80,16 @@ class WebSocketServer {
 
     // Enviar mensagem de sucesso para o cliente
     this.webSocketDataSender.sendSuccessMessage(ws, 'Conexão estabelecida com sucesso!');
+
+    // Atualizar o campo lastSessionDate do usuário através do método criado
+    try {
+      const user = await User.findById(userId);
+      if (user) {
+        await user.updateLastSessionDate();
+      }
+    } catch (error) {
+      logger.error(`Erro ao atualizar lastSessionDate: ${error}`);
+    }
 
     // Informar o WhatsAppSessionManager sobre a nova conexão em busca de QR code
     try {
