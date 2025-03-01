@@ -9,6 +9,6 @@ export const isTenantMiddleware = (req: AuthenticatedRequest, res: Response, nex
     next();
   } else {
     // O usuário não é um administrador, negar o acesso
-    return res.status(403).json({ error: 'Access denied. Only administrators are allowed.' });
+    return res.status(403).json({ error: 'Access denied. Only tenants are allowed.' });
   }
 };
