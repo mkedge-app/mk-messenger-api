@@ -94,6 +94,44 @@ class UserController {
       return res.status(500).json({ error: 'Erro ao excluir user' });
     }
   }
+
+  /**
+   * Method to update the status of a user
+   */
+  async updateStatus(req: Request, res: Response) {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Id é obrigatório" });
+    }
+
+    if (!status || !['active', 'suspended', 'trial'].includes(status)) {
+      return res.status(400).json({ error: "Status inválido. Os status válidos são: active, suspended, trial" });
+    }
+
+    try {
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(404).json({ error: 'User não encontrado' });
+      }
+
+      // Se o status for suspenso, definimos a data de suspensão
+      if (status === 'suspended') {
+        user.suspendedAt = new Date();
+      } else {
+        user.suspendedAt = null; // Limpa a data de suspensão se o status não for 'suspended'
+      }
+
+      user.status = status;
+
+      await user.save();
+
+      return res.status(200).json({ message: `Status do usuário atualizado para ${status}`, user });
+    } catch (error) {
+      return res.status(500).json({ error: 'Erro ao atualizar status do usuário' });
+    }
+  }
 }
 
 export default new UserController();

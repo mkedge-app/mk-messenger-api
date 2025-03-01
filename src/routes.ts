@@ -23,6 +23,7 @@ routes.get("/user", isAdminMiddleware, UserController.index);
 routes.post("/user", isAdminMiddleware, UserController.create);
 routes.get("/user/:id", UserController.show);
 routes.delete("/user/:id", isAdminMiddleware, UserController.delete);
+routes.put("/user/:id/status", isAdminMiddleware, UserController.updateStatus);
 
 // Rotas de interação com o gerenciador de sessões WhatsApp
 routes.get("/whatsapp/sessions", isAdminMiddleware, WhatsAppSessionController.index);
