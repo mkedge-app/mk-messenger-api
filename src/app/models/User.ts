@@ -7,7 +7,9 @@ interface UserFields {
   username: string;
   passwordHash: string;
   userType: 'admin' | 'tenant';
-  subscription?: mongoose.Types.ObjectId; // Referência ao ID da assinatura
+  status: 'active' | 'suspended' | 'trial';
+  suspendedAt?: Date | null; // Armazena a data de suspensão, se o usuário estiver suspenso
+  lastSessionDate?: Date | null; // Data da última vez que o usuário iniciou sessão
 }
 
 interface UserDocument extends UserFields, Document { }
@@ -20,13 +22,16 @@ const userSchema = new Schema<UserDocument>(
     username: { type: String, required: true, unique: true },
     passwordHash: { type: String, required: true },
     userType: { type: String, enum: ['admin', 'tenant'], required: true },
-    subscription: { type: Schema.Types.ObjectId, ref: 'Subscription' }, // Referência à assinatura
+    status: { type: String, enum: ['active', 'suspended', 'trial'], default: 'active' },
+    suspendedAt: { type: Date, default: null },
+    lastSessionDate: { type: Date, default: null },
   },
   {
-    timestamps: true, // Adiciona os campos createdAt e updatedAt
+    timestamps: true,
   }
 );
 
+// Criando o modelo com o schema
 const User = mongoose.model<UserDocument>('User', userSchema);
 
 export default User;
