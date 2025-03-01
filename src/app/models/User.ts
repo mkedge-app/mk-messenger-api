@@ -10,6 +10,8 @@ interface UserFields {
   status: 'active' | 'suspended' | 'trial';
   suspendedAt?: Date | null; // Armazena a data de suspensão, se o usuário estiver suspenso
   lastSessionDate?: Date | null; // Data da última vez que o usuário iniciou sessão
+
+  updateLastSessionDate: () => Promise<void>;
 }
 
 interface UserDocument extends UserFields, Document { }
@@ -30,6 +32,12 @@ const userSchema = new Schema<UserDocument>(
     timestamps: true,
   }
 );
+
+// Função para atualizar a data da última sessão
+userSchema.methods.updateLastSessionDate = function () {
+  this.lastSessionDate = new Date(); // Atualiza a data para o momento atual
+  return this.save(); // Salva a alteração no banco de dados
+};
 
 // Criando o modelo com o schema
 const User = mongoose.model<UserDocument>('User', userSchema);
