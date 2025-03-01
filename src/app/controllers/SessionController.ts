@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { JWT_CONFIG } from '../../config/jwt';
 import User from '../models/User';
@@ -16,7 +16,7 @@ class SessionController {
       }
 
       // Verificar se a senha está correta
-      const senhaCorreta = await bcrypt.compare(password, user.passwordHash);
+      const senhaCorreta = bcrypt.compareSync(password, user.passwordHash);
       if (!senhaCorreta) {
         return res.status(401).json({ error: 'Senha incorreta' });
       }

@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import logger from '../logger';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import User from '../app/models/User';
 
 import MONGO_DB_URL from '../config/mongodb';
 
 class Database {
-  constructor() {}
+  constructor() { }
 
   /**
    * Conecta ao banco de dados MongoDB e cria o usuário administrador padrão, se não existir.
@@ -40,7 +40,7 @@ class Database {
       if (!adminUser) {
         const plainPassword = process.env.DEFAULT_ADMIN_PASSWORD;
         if (plainPassword) {
-          const hashedPassword = await bcrypt.hash(plainPassword, 10);
+          const hashedPassword = bcrypt.hashSync(plainPassword, 10);
 
           await User.create({
             name: 'Admin User', // Nome do usuário administrador

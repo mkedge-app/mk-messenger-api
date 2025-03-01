@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import Tenant from '../models/Tenant';
 
 class TenantController {
@@ -53,7 +53,7 @@ class TenantController {
       senha
     } = req.body;
 
-    const hashPwd = await bcrypt.hash(senha, 10)
+    const hashPwd = bcrypt.hashSync(senha, 10);
 
     try {
       const tenant = await Tenant.create({

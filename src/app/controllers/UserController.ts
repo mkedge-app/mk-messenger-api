@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import User from '../models/User';
 
 class UserController {
@@ -55,8 +55,7 @@ class UserController {
         return res.status(400).json({ error: "O email já está em uso" });
       }
 
-      // Hash a senha antes de salvar
-      const hashedPassword = await bcrypt.hash(passwordHash, 10);
+      const hashedPassword = bcrypt.hashSync(passwordHash, 10);
 
       const newUser = await User.create({
         name,
