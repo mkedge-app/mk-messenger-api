@@ -7,10 +7,10 @@ class AuthMiddleware {
     this.tokenValidator = new TokenValidator();
   }
 
-  public handleConnection(
+  public async handleConnection(
     token: string,
-    callback: (authenticated: boolean, userId?: string) => void
-  ): void {
+    callback: (authenticated: boolean, userId?: string) => Promise<void>
+  ): Promise<void> {
     if (!token) {
       callback(false);
       return;
@@ -19,7 +19,7 @@ class AuthMiddleware {
     const authenticated = this.tokenValidator.validateToken(token);
     const userId = this.tokenValidator.extractUserId(token);
 
-    callback(authenticated, userId);
+    await callback(authenticated, userId);
   }
 }
 
