@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
+import WhatsAppSessionManager from '../../modules/whatsapp/WhatsAppSessionManager';
 
 class UserController {
   async index(req: Request, res: Response) {
@@ -79,16 +80,21 @@ class UserController {
     const { id } = req.params;
 
     if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Id é obrigatória" });
+      return res.status(400).json({ error: 'Id é obrigatória' });
     }
 
     try {
-      const deletedUser = await User.findByIdAndDelete(id);
-      if (!deletedUser) {
+      const userToDelete = await User.findById(id);
+      if (!userToDelete) {
         return res.status(404).json({ error: 'User não encontrado' });
       }
+
+      // Remove a sessão do WhatsApp antes de deletar o usuário
+      WhatsAppSessionManager.deleteSession(userToDelete.id);
+
+      // Agora deleta o usuário
+      await User.findByIdAndDelete(id);
+
       return res.status(200).json({ message: 'User excluído com sucesso' });
     } catch (error) {
       return res.status(500).json({ error: 'Erro ao excluir user' });
