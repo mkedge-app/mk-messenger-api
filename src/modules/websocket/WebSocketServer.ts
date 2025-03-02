@@ -52,13 +52,21 @@ class WebSocketServer {
       logger.info(`Pedido para inicializar sessão recebido`);
 
       // Define um callback para quando uma mensagem é recebida da conexão WebSocket
-      ws.on('message', (message: string) => {
+      ws.on('message', async (message: string) => {
         const { token } = JSON.parse(message);
 
         // Middleware de autenticação
-        this.authMiddleware.handleConnection(token, (authenticated: boolean, userId?: string) => {
+        await this.authMiddleware.handleConnection(token, async (authenticated: boolean, userId?: string) => {
           if (authenticated) {
             if (userId) {
+              // Verificando o status do usuário após a autenticação
+              const user = await User.findById(userId);
+              if (user && user.status === 'suspended') {
+                this.webSocketDataSender.sendErrorMessage(ws, 'Usuário suspenso. Não é possível iniciar a sessão.');
+                ws.close();
+                return;
+              }
+
               // Lidar com a conexão autenticada
               this.handleAuthenticatedConnection(ws, userId);
             } else {
