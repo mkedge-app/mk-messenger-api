@@ -6,10 +6,26 @@ import WhatsAppSessionManager from '../../modules/whatsapp/WhatsAppSessionManage
 class UserController {
   async index(req: Request, res: Response) {
     try {
-      const users = await User.find();
+      const { userType, status } = req.query; // Pegando os parâmetros de query
+
+      // Construindo filtro dinâmico
+      const filter: any = {};
+
+      // Se userType for passado, filtramos por ele
+      if (userType && ['admin', 'tenant'].includes(userType as string)) {
+        filter.userType = userType;
+      }
+
+      // Se status for passado, filtramos por ele
+      if (status && ['active', 'suspended', 'trial'].includes(status as string)) {
+        filter.status = status;
+      }
+
+      // Busca todos se não houver filtros
+      const users = await User.find(filter);
       return res.status(200).json(users);
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao listar users' });
+      return res.status(500).json({ error: "Erro ao listar users" });
     }
   }
 
