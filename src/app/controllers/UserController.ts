@@ -32,26 +32,29 @@ class UserController {
   async show(req: Request, res: Response) {
     const { id } = req.params;
 
+    // Verifica se o ID foi fornecido na requisição.
     if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Id é obrigatória" });
+      return res.status(400).json({ error: 'O ID é obrigatório' });
     }
 
     try {
-      const user = await User.findById(id);
+      // Consulta o usuário pelo ID no banco de dados e popula o campo 'subscription'.
+      const user = await User.findById(id).populate('subscription');
+
+      // Se o usuário não for encontrado, retorna um erro 404.
       if (!user) {
-        return res.status(404).json({ error: 'User não encontrado' });
+        return res.status(404).json({ error: 'Usuário não encontrado' });
       }
+
+      // Retorna o usuário com sua assinatura populada como resposta JSON de sucesso (status 200).
       return res.status(200).json(user);
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao obter user' });
+      // Em caso de erro durante a consulta, registra o erro e retorna uma resposta de erro (status 500).
+      console.error('Erro ao obter usuário:', error);
+      return res.status(500).json({ error: 'Erro ao obter usuário' });
     }
   }
 
-  /**
-   * Method to create a new user
-   */
   async create(req: Request, res: Response) {
     try {
       const { name, contactPhone, contactEmail, username, passwordHash, userType } = req.body;

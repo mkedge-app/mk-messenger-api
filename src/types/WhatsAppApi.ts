@@ -1,21 +1,3 @@
-export interface WppInitResponse {
-  error: boolean;
-  message: string;
-  key: string;
-  webhook: {
-    enabled: boolean;
-    webhookUrl: string | null;
-  };
-  qrcode: {
-    url: string;
-  };
-  browser: {
-    platform: string;
-    browser: string;
-    version: string;
-  };
-}
-
 export interface Session {
   instance_key: string,
   phone_connected?: boolean,
@@ -23,12 +5,6 @@ export interface Session {
   user: {
     id?: string,
   },
-}
-
-export interface WppSessionResponse {
-  error: boolean;
-  message: string;
-  data: Session[]
 }
 
 export interface QRCodeData {

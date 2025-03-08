@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import UserController from "./app/controllers/UserController";
 import SessionController from "./app/controllers/SessionController";
 import MessageLogController from "./app/controllers/MessageLogController";
@@ -12,8 +13,8 @@ import { tenantStatusCheck } from "./middlewares/tenantStatusCheck";
 
 const routes = Router();
 
-// Rota de autenticação
-routes.post("/session", SessionController.create);
+// Rotas publicas
+routes.post("/session", SessionController.create); // Login
 
 // Aplicar middleware de autenticação
 routes.use(authenticateUser);

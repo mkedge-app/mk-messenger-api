@@ -14,9 +14,6 @@ class WhatsAppMessageController {
         return res.status(400).json({ error: "Parâmetros incompletos" });
       }
 
-      // Garantir que text seja sempre uma string usando o operador de coalescência nula (??)
-      const cleanedText = typeof text === 'string' ? text.replace(/[\r\n]/g, '') : '';
-
       let sentMessage;
 
       switch (type) {
@@ -45,6 +42,9 @@ class WhatsAppMessageController {
 
         // Certificar-se de que request.userId é uma string usando o operador de coalescência nula (??)
         const requester = request.userId ?? "";
+
+        // Verifica se a variável 'text' é uma string; se for, remove todos os caracteres de quebra de linha (quebras de linha e retornos de carro) da string.
+        const cleanedText = typeof text === 'string' ? text.replace(/[\r\n]/g, '') : '';
 
         // Criar e salvar o log da mensagem no banco de dados usando o serviço MessageLogService
         const newMessageLog = await MessageLogService.createMessageLog(
