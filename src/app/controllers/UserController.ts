@@ -38,8 +38,7 @@ class UserController {
     }
 
     try {
-      // Consulta o usuário pelo ID no banco de dados e popula o campo 'subscription'.
-      const user = await User.findById(id).populate('subscription');
+      const user = await User.findById(id);
 
       // Se o usuário não for encontrado, retorna um erro 404.
       if (!user) {
