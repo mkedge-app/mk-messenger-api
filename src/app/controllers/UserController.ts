@@ -156,6 +156,40 @@ class UserController {
       return res.status(500).json({ error: 'Erro ao atualizar status do usuário' });
     }
   }
+
+  async update(req: Request, res: Response) {
+    const { id } = req.params;
+    const { name, contactPhone, contactEmail, username, password, userType } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "O ID é obrigatório" });
+    }
+
+    try {
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      // Atualiza apenas os campos fornecidos (exceto status)
+      if (name) user.name = name;
+      if (contactPhone) user.contactPhone = contactPhone;
+      if (contactEmail) user.contactEmail = contactEmail;
+      if (username) user.username = username;
+      if (userType && ['admin', 'tenant'].includes(userType)) user.userType = userType;
+
+      // Atualiza a senha se for fornecida
+      if (password) {
+        user.passwordHash = bcrypt.hashSync(password, 10);
+      }
+
+      await user.save();
+
+      return res.status(200).json({ message: "Usuário atualizado com sucesso", user });
+    } catch (error) {
+      return res.status(500).json({ error: "Erro ao atualizar usuário" });
+    }
+  }
 }
 
 export default new UserController();

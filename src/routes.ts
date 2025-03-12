@@ -23,6 +23,7 @@ routes.use(authenticateUser);
 routes.get("/user", isAdminMiddleware, UserController.index);
 routes.post("/user", isAdminMiddleware, UserController.create);
 routes.get("/user/:id", UserController.show);
+routes.put("/user/:id", isAdminMiddleware, UserController.update);
 routes.delete("/user/:id", isAdminMiddleware, UserController.delete);
 routes.put("/user/:id/status", isAdminMiddleware, UserController.updateStatus);
 
